@@ -1,3 +1,5 @@
+![banner](https://github.com/icywire/project-falcon/blob/eef1050dd2d5b04c1bebc8fe3d24085f15c71986/banner.png)
+
 # Project Falcon
 This project aims to makes your Mac great again, by deliverying driver updates to AMD Radeon GPUs.
 
