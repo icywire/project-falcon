@@ -976,110 +976,6 @@ HKR,,UserMustConfirm,%REG_DWORD%,1
 HKR,,R6LCD_ALLOWDISABLELOWREFRESHBYUSER,%REG_DWORD%,1
 HKR,,ExtEvent_EnableAutoDisplayConfig,%REG_DWORD%,1
 
-[ati2mtag_Polaris10_SoftwareDeviceSettings]
-HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
-HKR,,MemInitLatencyTimer,%REG_DWORD%,0x775771BF
-HKR,"UMD\DXVA",3to2Pulldown,%REG_SZ%,"1"
-HKR,"UMD\DXVA",3to2Pulldown_DEF,%REG_SZ%,"1"
-HKR,,Denoise_NA,%REG_SZ%,"0"
-HKR,,Detail_NA,%REG_SZ%,"0"
-HKR,,DynamicContrast_NA,%REG_SZ%,"0"
-HKR,"UMD\DXVA",StaticGamma,%REG_SZ%,"100"
-HKR,"UMD\DXVA",StaticGamma_DEF,%REG_SZ%,"100"
-HKR,,ASTT_NA,%REG_SZ%,"1"
-HKR,UMD,ASD_DEF,%REG_SZ%,0
-HKR,UMD,ASE_DEF,%REG_SZ%,0
-HKR,,DemoMode_NA,%REG_SZ%,"0"
-HKR,,SplitScreen_NA,%REG_SZ%,"0"
-HKR,,TheaterMode_NA,%REG_SZ%,1
-HKR,,DemoMode_DEF,%REG_SZ%,"0"
-HKR,,StaticGamma_NA,%REG_SZ%,0
-HKR,,Gamma_NA,%REG_SZ%,1
-HKR,,EQAA_NA,%REG_SZ%,0
-HKR,UMD,EQAA_DEF,%REG_SZ%,0
-HKR,UMD,EQAAMapping_SET,%REG_SZ%,"0(0:0,1:0) 2(0:2,1:2) 4(0:4,1:4) 8(0:8,1:8,2:16)"
-HKR,,MLF_NA,%REG_SZ%,0
-HKR,UMD,MLF_DEF,%REG_SZ%,0
-HKR,,EnableUlps_NA,%REG_SZ%,1
-HKR,,SurfaceFormatReplacements_NA,%REG_SZ%,0
-HKR,UMD,SurfaceFormatReplacements_DEF,%REG_SZ%,1
-HKR,,TFQ_NA,%REG_SZ%,0
-HKR,UMD,TFQ_DEF,%REG_SZ%,1
-HKR,,AntiAlias_NA,%REG_SZ%,0
-HKR,UMD,AntiAliasSamples_SET,%REG_SZ%,"0 2 4 8"
-HKR,,TextureLod_NA,%REG_SZ%,1
-HKR,UMD,AntiAlias_DEF,%REG_SZ%,1
-HKR,UMD,AntiAliasSamples_DEF,%REG_SZ%,0
-HKR,UMD,AntiAliasMapping_SET,%REG_SZ%,"0(0:0,1:0) 2(0:2,1:2) 4(0:4,1:4) 8(0:8,1:8,2:16)"
-HKR,,TestOnceRequest_NA,%REG_SZ%,1
-HKR,,AutoTuneRequest_NA,%REG_SZ%,1
-HKR,,CameraShakeMotionDetect_NA,%REG_SZ%,1
-HKR,"UMD\DXVA",EnableHLGSupport,%REG_SZ%,1
-HKR,"UMD\DXVA",EnableHDRLUT,%REG_SZ%,1
-HKR,UMD,GLPBMode_DEF,%REG_SZ%,0
-HKR,,OclDJInterval,%REG_DWORD%,60
-HKR,UMD,NoOSPowerOptions,%REG_SZ%,0
-HKR,,PP_DisableVoltageIsland,%REG_DWORD%,1
-HKR,,DalAllowDPrefSwitchingForGLSync,%REG_DWORD%,1
-HKR,,DalReportSingleSelectedTiming,%REG_DWORD%,1
-HKR,,DisableSAMUPowerGating,%REG_DWORD%,1
-HKR,,DalPSRFeatureEnable,%REG_DWORD%,0
-HKR,,DisablePowerGating,%REG_DWORD%,1
-HKLM,"SYSTEM\CurrentControlSet\services\amdkmdap",Proxy_HookAmdGfxInfo,%REG_DWORD%,1
-HKR,,KMD_EnableDesktopTexture,%REG_DWORD%,0
-HKR,,DisableVCEPowerGating,%REG_DWORD%,0
-HKR,,EnableUvdClockGating,%REG_DWORD%,1
-HKR,,EnableVceSwClockGating,%REG_DWORD%,1
-HKR,,DisableUVDPowerGatingDynamic,%REG_DWORD%,1
-HKR,"UMD\DXVA",CameraShake_ENABLE_DEF,%REG_SZ%,0
-HKR,"UMD\DXVA",CameraShakeStrength_DEF,%REG_SZ%,1
-HKR,"UMD\DXVA",CameraShakeDelay_DEF,%REG_SZ%,1
-HKR,"UMD\DXVA",CameraShakeZoom_DEF,%REG_SZ%,95
-HKR,"UMD\DXVA",CameraShakeDisplayLogoVersion,%REG_SZ%,0
-HKR,"UMD\DXVA",MosquitoNoiseRemoval_DEF,%REG_SZ%,50
-HKR,"UMD\DXVA",MosquitoNoiseRemoval_ENABLE_DEF,%REG_SZ%,0
-HKR,,MosquitoNoiseRemoval_NA,%REG_SZ%,0
-HKR,"UMD\DXVA",Deblocking_DEF,%REG_SZ%,50
-HKR,"UMD\DXVA",Deblocking_ENABLE_DEF,%REG_SZ%,0
-HKR,,Deblocking_NA,%REG_SZ%,0
-HKR,,EnableSlsSupport,%REG_DWORD%,0x1C
-HKR,,EnableUlps,%REG_DWORD%,1
-HKR,"UMD\DXVA",DI_METHOD_DEF,%REG_SZ%,-1
-HKR,,Gxo24HzTimingSupport,%REG_DWORD%,1
-HKR,,EnableCrossFireAutoLink,%REG_DWORD%,1
-HKR,,Gxo50HzTimingSupport,%REG_DWORD%,1
-HKR,,ExtEvent_BIOSEventByInterrupt,%REG_DWORD%,1
-HKR,,TVM6Flag,%REG_DWORD%,0
-HKR,,TVDisableModes,%REG_DWORD%,0
-HKR,,DisableFBCForFullScreenApp,%REG_SZ%,1
-HKR,"UMD\DXVA",MJPEGDecodeMode,%REG_SZ%,1
-HKR,,PP_DisableFFC,%REG_DWORD%,1
-HKR,UMD,Main3D_DEF,%REG_SZ%,3
-HKR,UMD,AnisoType_DEF,%REG_SZ%,0
-HKR,UMD,AnisoDegree_DEF,%REG_SZ%,0
-HKR,UMD,TextureOpt_DEF,%REG_SZ%,0
-HKR,UMD,TextureLod_DEF,%REG_SZ%,0
-HKR,UMD,TruformMode_DEF,%REG_SZ%,0
-HKR,UMD,VSyncControl_DEF,%REG_SZ%,1
-HKR,UMD,SwapEffect_DEF,%REG_SZ%,0
-HKR,UMD,TemporalAAMultiplier_DEF,%REG_SZ%,0
-HKR,UMD,ExportCompressedTex_DEF,%REG_SZ%,1
-HKR,UMD,PixelCenter_DEF,%REG_SZ%,0
-HKR,UMD,ForceZBufferDepth_DEF,%REG_SZ%,0
-HKR,UMD,EnableTripleBuffering_DEF,%REG_SZ%,0
-HKR,UMD,CatalystAI_DEF,%REG_SZ%,1
-HKR,,ColourDesktopGamma_DEF,%REG_SZ%,1.0 1.0 1.0
-HKR,,ColourDesktopBrightness_DEF,%REG_SZ%,0 0 0
-HKR,,ColourDesktopContrast_DEF,%REG_SZ%,1.0 1.0 1.0
-HKR,,ColourFullscreenGamma_DEF,%REG_SZ%,1.0 1.0 1.0
-HKR,,ColourFullscreenBrightness_DEF,%REG_SZ%,0 0 0
-HKR,,ColourFullscreenContrast_DEF,%REG_SZ%,1.0 1.0 1.0
-HKR,,3D_Refresh_Rate_Override_DEF,%REG_DWORD%,0
-HKR,,Display_Detection_DEF,%REG_DWORD%,0
-HKR,,Panning_Mode_DEF,%REG_DWORD%,0
-HKR,,Force_TV_Detection_DEF,%REG_DWORD%,0
-HKR,,BDFDF99820EF94EFFD3F, %REG_BINARY%,52,F9,06,B0
-
 [ati2mtag_Navi10_SoftwareDeviceSettings]
 HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
 HKR,,MemInitLatencyTimer,%REG_DWORD%,0x775771BF
@@ -1383,6 +1279,12 @@ HKR,,Force_TV_Detection_DEF,%REG_DWORD%,0
 HKR,,BDFDDD8C54EF94EFFDFF, %REG_BINARY%,82,4C,08,80
 HKR,,BDFDDF8C54EF94EFFDFF, %REG_BINARY%,61,9F,07,38
 HKR,,BDFDE08C5DEF94EFFDFF, %REG_BINARY%,61,A7,07,39
+
+xxx
+zzz
+yyy
+
+[ati2mtag_Navi22_SoftwareDeviceSettings]
 
 [ati2mtag_Navi23_SoftwareDeviceSettings]
 HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
