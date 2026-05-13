@@ -1,17 +1,15 @@
 ![banner](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/images/banner.png?raw=true)
 
 ## About
-The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died. **RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
+The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died.  
+**RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
 
 ## Falcon Drivers
 
 ### AMD 25.2.1 (most stable)
 
-This driver is based on official [AMD 25.2.1](https://drivers.amd.com/drivers/amd-software-adrenalin-edition-25.2.1-win10-win11-feb2025-rdna.exe) driver — no binaries are modified.
-
-#### Supported devices
-
-* All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
+This driver is based on official [AMD 25.2.1](https://drivers.amd.com/drivers/amd-software-adrenalin-edition-25.2.1-win10-win11-feb2025-rdna.exe) driver — no binaries are modified.  
+All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
 
 ### AMD 26.5.1
 
@@ -29,24 +27,18 @@ For now, drivers are not signed, and **must be installed with disabled drivers s
 7. Just continue when system alert will pop up
 
 ## Overclocking/undervolting mobile cards
-TL;DR — overclocking/undervolting for AMD mobile cards **can be unlocked!**  
-TL;DR2 — and yes, you don't have to use very old kernel 22.40 from AMD 23.5.2 drivers! <sup>(1)</sup>
 
-In Macbooks **power and thermal throttling** are common issues. Fortunately, with undervolting, you may reduce power consumption to avoid throttling and improve performance.
+See [OVERCLOCKING.md](OVERCLOCKING.md)
 
-<sup>(1)</sup> This is the method known from RadeonID drivers, [see guide](https://www.reddit.com/r/macgaming/comments/1c48skn/full_installation_guide_latest_2024_amd_2431).
-
-TBA
-
-## Tools
+### Tools
 
 [MorePowerTool_1.2.2](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/MorePowerTool_1.2.2.exe) - needed for overclocking/undervolting  
 [restart64-gpu](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/restart64-gpu.exe) - simple tool for hot-reloading AMD cards after usign MPT or changing registry  
 [MPO-GPU-FIX](https://github.com/RedDot-3ND7355/MPO-GPU-FIX) - small tool that might help fix stutters and improve FPS
 
-## Guides
+### Guides
 
-VRM cooling mod for Macbooks - https://www.reddit.com/r/macbookpro/comments/gs6bal/2019_mbp_16_vrm_cooling_mod
+VRM cooling mod for Macbooks - https://www.reddit.com/r/macbookpro/comments/gs6bal/2019_mbp_16_vrm_cooling_mod  
 How to unlock Wattman settings using RadeonID with old 22.40 kernel - https://www.reddit.com/r/macgaming/comments/1c48skn/full_installation_guide_latest_2024_amd_2431
 
 ### Why "Falcon" ?
