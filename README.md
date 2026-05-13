@@ -15,7 +15,7 @@ All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M
 
 (Work in progress)
 
-## Installation
+### Installation
 For now, drivers are not signed, and **must be installed with disabled drivers signature check** ([see guide](https://www.google.com/search?q=disable+driver+signature+enforcement+windows)). 
 
 1. Uninstall old GPU driver
@@ -29,6 +29,8 @@ For now, drivers are not signed, and **must be installed with disabled drivers s
 ## Overclocking/undervolting mobile cards
 
 See [OVERCLOCKING.md](OVERCLOCKING.md)
+
+## Other
 
 ### Tools
 
