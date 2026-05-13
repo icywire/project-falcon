@@ -68,13 +68,6 @@ ExcludeFromSelect=*
 %ATI% = ATI.Mfg, NTamd64.10.0.1..16299, NTamd64.10.0.1, NTamd64.6.0.1, NTamd64.6.1.1, NTamd64.6.2.1, NTamd64.6.3.1
 
 [ATI.Mfg.NTamd64.10.0.1..16299]
-"AMD Radeon Pro 5700 XT" = ati2mtag_Navi10, PCI\VEN_1002&DEV_7319&SUBSYS_021B106B&REV_40
-"AMD Radeon Pro 5700" = ati2mtag_Navi10, PCI\VEN_1002&DEV_731B&SUBSYS_021A106B&REV_40
-"AMD Radeon Pro 5500M" = ati2mtag_Navi14, PCI\VEN_1002&DEV_7340&SUBSYS_020F106B&REV_40
-"AMD Radeon Pro 5300M" = ati2mtag_Navi14, PCI\VEN_1002&DEV_7340&SUBSYS_0210106B&REV_43
-"AMD Radeon Pro 5500 XT" = ati2mtag_Navi14, PCI\VEN_1002&DEV_7340&SUBSYS_0218106B&REV_41
-"AMD Radeon Pro 5300" = ati2mtag_Navi14, PCI\VEN_1002&DEV_7340&SUBSYS_0219106B&REV_47
-"AMD Radeon Pro 5600M" = ati2mtag_Navi10, PCI\VEN_1002&DEV_7360&SUBSYS_021E106B&REV_41
 "%AMD13C0.1%" = ati2mtag_GraniteRidge, PCI\VEN_1002&DEV_13C0&SUBSYS_88771043&REV_C1
 "%AMD13C0.2%" = ati2mtag_GraniteRidge, PCI\VEN_1002&DEV_13C0&SUBSYS_88771043&REV_C2
 "%AMD13C0.3%" = ati2mtag_GraniteRidge, PCI\VEN_1002&DEV_13C0&SUBSYS_88771043&REV_C3
@@ -4843,9 +4836,9 @@ AddReg = MFTMJPEGRegister
 AddReg = MFTHEVCRegister
 CopyINF = .\amdxe\amdxe.inf
 CopyINF = .\amdfendr\amdfendr.inf
-;;;ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_020F106B
-;;;ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_0210106B
-;;;ExcludeID = PCI\VEN_1002&DEV_7310&SUBSYS_0212106B
+ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_020F106B
+ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_0210106B
+ExcludeID = PCI\VEN_1002&DEV_7310&SUBSYS_0212106B
 CopyINF = .\amdpcibridge\amdpcibridgeextension.inf
 CopyINF=amduw23e.inf
 CopyINF = .\AMDOCL\amdocl.inf
@@ -4875,9 +4868,9 @@ AddReg = MFTMJPEGRegister
 AddReg = MFTHEVCRegister
 CopyINF = .\amdxe\amdxe.inf
 CopyINF = .\amdfendr\amdfendr.inf
-;;;ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_020F106B
-;;;ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_0210106B
-;;;ExcludeID = PCI\VEN_1002&DEV_7310&SUBSYS_0212106B
+ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_020F106B
+ExcludeID = PCI\VEN_1002&DEV_7340&SUBSYS_0210106B
+ExcludeID = PCI\VEN_1002&DEV_7310&SUBSYS_0212106B
 CopyINF = .\amdpcibridge\amdpcibridgeextension.inf
 CopyINF=amduw23e.inf
 CopyINF = .\AMDOCL\amdocl.inf
@@ -5740,7 +5733,7 @@ ComponentIDs=AMDFDANS-1.0.0
 ;
 
 [ati2mtag_Desktop_SoftwareDeviceSettings]
-;;; HKR,,KMD_EnableBrightnessInterface2,%REG_DWORD%,1
+HKR,,KMD_EnableBrightnessInterface2,%REG_DWORD%,1
 
 [ati2mtag_Rembrandt_SoftwareDeviceSettings]
 HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
@@ -9866,12 +9859,10 @@ HKR,,BDFFF4EAF10EEEEFFD3E, %REG_BINARY%,9B,16,09,9B
 [ati2mtag_Mobile_SoftwareDeviceSettings]
 HKR,,RemovableSources,%REG_DWORD%,2
 HKR,,DalDisplayPreferredView,%REG_DWORD%,1
-;;; HKR,,KMD_EnableBrightnessInterface2,%REG_DWORD%,1
+HKR,,KMD_EnableBrightnessInterface2,%REG_DWORD%,1
 HKR,,UserMustConfirm,%REG_DWORD%,1
 HKR,,DALOPTION_MinResBCD,%REG_BINARY%,00,00,00,00,00,00,00,60
 HKR,,ExtEvent_EnableAutoDisplayConfig,%REG_DWORD%,1
-;;;
-HKR,,R6LCD_ALLOWDISABLELOWREFRESHBYUSER,%REG_DWORD%,1
 
 [ati2mtag_Mobile_PX_SoftwareDeviceSettings]
 HKR,,ACPI_HKUseCCD,%REG_DWORD%,1
@@ -10052,11 +10043,6 @@ HKR,,BDF6628CE0EFD7EFFD3C, %REG_BINARY%,87,9B,08,D8
 HKR,,BDF6648CE0EFD7EFFD3C, %REG_BINARY%,87,9B,08,D8
 HKR,,BDFCE18CEDEFC3EFFDFF, %REG_BINARY%,59,F6,06,DE
 HKR,,BDFCE18CEDEFD7EFFDFF, %REG_BINARY%,59,F6,06,DE
-;;;
-HKR,,DalPSRFeatureEnable,%REG_DWORD%,0
-HKR,,BDFDE18C9FEF94EFFDBE, %REG_BINARY%,59,2C,06,D3
-HKR,,BDFDE48CE6EF94EFFDBF, %REG_BINARY%,67,59,07,53
-HKR,,BDFDE58CE4EF94EFFDBF, %REG_BINARY%,52,2A,06,87
 
 [ati2mtag_Navi14_SoftwareDeviceSettings]
 HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
@@ -10205,12 +10191,6 @@ HKR,,BDF62D8CBFEFD7EFFD3E, %REG_BINARY%,87,7D,08,D6
 HKR,,BDF62E8CBFEFD7EFFD3E, %REG_BINARY%,87,7D,08,D6
 HKR,,BDF6308CBFEFD7EFFD3E, %REG_BINARY%,87,7D,08,D6
 HKR,,BDF6318CBFEFD7EFFD3E, %REG_BINARY%,87,7D,08,D6
-;;;
-HKR,,DalPSRFeatureEnable,%REG_DWORD%,0
-HKR,,BDFDE68CBFEF94EFFDB8, %REG_BINARY%,52,0E,06,83
-HKR,,BDFDE78CBFEF94EFFDBE, %REG_BINARY%,67,45,07,51
-HKR,,BDFDEF8CBFEF94EFFDBC, %REG_BINARY%,59,14,06,D0
-HKR,,BDFDF08CBFEF94EFFDBF, %REG_BINARY%,59,24,06,D2
 
 [ati2mtag_Navi21_SoftwareDeviceSettings]
 HKR,,WmAgpMaxIdleClk,%REG_DWORD%,0x20
@@ -11503,14 +11483,6 @@ HKR,"UMD\DXXP",#4213359918,%REG_SZ%,4117
 HKR,"UMD\VULKAN",#4213359918,%REG_SZ%,0x1015
 HKR,,RadeonSoftwareEdition,,"AMD Software: Adrenalin Edition"
 HKR,,RadeonSoftwareVersion,,"25.2.1"
-;;;
-HKR,,DalFeatureBacklightControl,%REG_DWORD%,0
-HKR,,DalDPSkipPowerOff,%REG_DWORD%,1
-HKR,,DALOPTION_MinResBCD,%REG_BINARY%,00,00,00,00,00,00,00,60
-HKR,,DisableWorkstation,%REG_DWORD%,1
-HKR,,KMD_MPOSupport,%REG_DWORD%,0
-HKR,,PP_Apple_Bootcamp_Enable,%REG_DWORD%,1
-HKR,,PP_VariBrightFeatureEnable,%REG_DWORD%,0
 
 [atikmdag_MSI_HardwareDeviceSettings]
 HKR,"Interrupt Management\MessageSignaledInterruptProperties",MSISupported,0x00010001,1
@@ -11573,11 +11545,6 @@ HKR,,KMD_EnableOPM2Interface,%REG_DWORD%,1
 HKLM,"SYSTEM\CurrentControlSet\services\amdkmdap",KMD_MgpuSlsWsSupport,%REG_DWORD%,0
 HKR,,KMD_EnableContextBasedPowerManagement,%REG_DWORD%,1
 HKR,"UMD\DXVA",Cm_EnableContextBasedPowerManagement,%REG_SZ%,1
-;;;
-HKR,,KMD_BootCampPlatform,%REG_DWORD%,1
-HKR,,KMD_EnableDisplayableSupport,%REG_DWORD%,0
-HKR,,PP_EnableLoadFalconSmcFirmware,%REG_DWORD%,1
-HKR,,PP_Falcon_QuickTransition_Enable,%REG_DWORD%,1
 
 [ati2mtag_NAVIA_SoftwareDeviceSettings]
 HKR,,IntegerScalingPerAppSupport,%REG_DWORD%,1
