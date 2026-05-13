@@ -1,31 +1,21 @@
 ![banner](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/images/banner.png?raw=true)
 
 ## About
-The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died. **RDNA** cards are main focus, as AMD still release driver updates for them (even though RDNA3/RDNA4 is more important :disappointed:).
-
-Wonder why "Falcon"?  
-This name comes from BIOS dump ([see screenshot](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/images/bios_falcon.jpg)) of my Radeon Pro 5500M (MacbookPro 2019), and also from registry keys from Apple's drivers for AMD cards (namely `PP_EnableLoadFalconSmcFirmware` and `PP_Falcon_QuickTransition_Enable`).  
-And it's cool, right? :sunglasses:
+The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died. **RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
 
 ## Falcon Drivers
 
-### AMD 25.2.1 / RDNA1 (most stable)
+### AMD 25.2.1 (most stable)
 
 This driver is based on official [AMD 25.2.1](https://drivers.amd.com/drivers/amd-software-adrenalin-edition-25.2.1-win10-win11-feb2025-rdna.exe) driver — no binaries are modified.
 
 #### Supported devices
 
-* All RDNA1 (Navi10/Navi14) cards should work - Radeon Pro 5300/5500/5600/5700
-* Possible to add support for RDNA2 cards (from MacPro)
+* All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
 
-#### Verified devices
+### AMD 26.5.1
 
-* Radeon Pro 5500M 8GB / MacbookPro 2019
-
-### AMD 26.3.1 + kernel from 25.2.1 (yet unreleased)
-
-This driver is based on official AMD 26.3.1 driver, but use kernel from 25.2.1 (which is the last driver that works with Macbooks).  
-TBA
+(Work in progress)
 
 ## Installation
 For now, drivers are not signed, and **must be installed with disabled drivers signature check** ([see guide](https://www.google.com/search?q=disable+driver+signature+enforcement+windows)). 
@@ -51,8 +41,14 @@ TBA
 ## Tools
 
 [MorePowerTool_1.2.2](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/MorePowerTool_1.2.2.exe) - needed for overclocking/undervolting  
-[restart64-gpu](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/restart64-gpu.exe) - simple tool for hot-reloading AMD cards after usign MPT or changing registry
+[restart64-gpu](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/restart64-gpu.exe) - simple tool for hot-reloading AMD cards after usign MPT or changing registry  
+[MPO-GPU-FIX](https://github.com/RedDot-3ND7355/MPO-GPU-FIX) - small tool that might help fix stutters and improve FPS
 
 ## Guides
 
+VRM cooling mod for Macbooks - https://www.reddit.com/r/macbookpro/comments/gs6bal/2019_mbp_16_vrm_cooling_mod
 How to unlock Wattman settings using RadeonID with old 22.40 kernel - https://www.reddit.com/r/macgaming/comments/1c48skn/full_installation_guide_latest_2024_amd_2431
+
+### Why "Falcon" ?
+This names comes from BIOS dump of Radeon Pro 5500M, and also exists in driver registry (`PP_EnableLoadFalconSmcFirmware` and `PP_Falcon_QuickTransition_Enable` keys).
+And it's cool, right? :sunglasses:
