@@ -8,7 +8,7 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ### AMD 25.2.1 (most stable)
 
-This driver is based on official [AMD 25.2.1](https://drivers.amd.com/drivers/amd-software-adrenalin-edition-25.2.1-win10-win11-feb2025-rdna.exe) driver — no binaries are modified.  
+This driver is based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver — no binaries are modified.  
 All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
 
 ### AMD 26.5.1
