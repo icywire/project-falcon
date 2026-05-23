@@ -36,20 +36,25 @@ if not exist "%DST%\u0412654.inf" (
     goto :end
 )
 
-echo [1/3] Copying driver files...
+echo [1/4] Copying driver files...
 copy /y "%SRC%\u0412654.inf" "%DST%\" >nul || goto :error
 copy /y "%SRC%\u0412654.cat" "%DST%\" >nul || goto :error
 echo       Done.
 
-echo [2/3] Installing certificate...
+echo [2/4] Installing certificate...
 certutil -f -p "falcon" -importpfx My "%CERT%\Project Falcon.pfx" >nul 2>&1 || goto :error
 certutil -f -addstore My              "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 certutil -f -addstore Root            "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 echo       Done.
 
-echo [3/3] Installing driver - please be patient, this will take a while...
-pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
+echo [3/4] Installing driver - please be patient, this may take a moment...
+start /b /w pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
+echo       Done.
+
+echo [4/4] Installing WHQL Digital Signature Link...
+start /b /w pnputil /add-driver "%SRC%\whql\u0412654.inf" /install || goto :error
+pnputil /scan-devices
 echo       Done.
 
 echo.
