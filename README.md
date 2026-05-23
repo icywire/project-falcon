@@ -11,20 +11,17 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 This driver is based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver — no binaries are modified.  
 All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
 
-### AMD 26.5.1
+### AMD 26.5.2
 
 (Work in progress)
 
 ### Installation
-For now, drivers are not signed, and **must be installed with disabled drivers signature check** ([see guide](https://www.google.com/search?q=disable+driver+signature+enforcement+windows)). 
 
-1. Uninstall old GPU driver
-2. Download official base driver (links above)
-3. Try to install it. Once it fails just close the installer window. Extracted driver will remain on C:\ drive
-4. Download Falcon driver
-5. Copy Falcon .inf file to C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF
-6. Install driver manually from Device Manager by selecting folder listed in earlier point (pick bottom option twice, and then click on "From disk")
-7. Just continue when system alert will pop up
+1. Uninstall the existing GPU driver manually or using DDU or RAPR (see Tools section below)
+2. Download the official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) base driver and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
+3. Download or clone this repository
+4. Run `install-driver.cmd` — it will patch base driver and 
+5. Done
 
 ## Overclocking/undervolting mobile cards
 
@@ -34,9 +31,19 @@ See [OVERCLOCKING.md](OVERCLOCKING.md)
 
 ### Tools
 
-[MorePowerTool_1.2.2](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/MorePowerTool_1.2.2.exe) - needed for overclocking/undervolting  
+#### Uninstalling drivers
+
+[Display Driver Uninstaller (DDU)](https://www.guru3d.com/download/display-driver-uninstaller-download/) - recommended tool for cleanly uninstalling GPU drivers  
+[DriverStoreExplorer (RAPR)](https://github.com/lostindark/DriverStoreExplorer) - browse and remove driver packages from the Windows Driver Store
+
+#### Tuning
+
+[MPO-GPU-FIX](https://github.com/RedDot-3ND7355/MPO-GPU-FIX) - small tool that might help fix stutters and improve FPS  
+
+#### Overclocking tools
+
+[MorePowerTool_1.2.2 (MPT)](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/MorePowerTool_1.2.2.exe) - needed for overclocking/undervolting to change clocks/voltages/limits 
 [restart64-gpu](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/tools/restart64-gpu.exe) - simple tool for hot-reloading AMD cards after usign MPT or changing registry  
-[MPO-GPU-FIX](https://github.com/RedDot-3ND7355/MPO-GPU-FIX) - small tool that might help fix stutters and improve FPS
 
 ### Guides
 
