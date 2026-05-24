@@ -23,38 +23,35 @@ echo.
 
 set "SRC=%~dp0falcon_drivers\AMD-25.2.1"
 set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF"
-set "CERT=%~dp0certificate"
+set "DSTPARENT=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display"
 
 :: Verify base driver is present
-if not exist "%DST%\u0412654.inf" (
-    echo ERROR: Base driver not found.
-    echo.
-    echo   AMD Radeon Software 25.2.1 must be downloaded and extracted first.
-    echo   Download it from:
-    echo   https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html
-    echo.
-    goto :end
-)
 
 echo [1/4] Copying driver files...
 copy /y "%SRC%\u0412654.inf" "%DST%\" >nul || goto :error
 copy /y "%SRC%\u0412654.cat" "%DST%\" >nul || goto :error
 echo       Done.
 
-echo [2/4] Installing certificate...
-certutil -f -p "falcon" -importpfx My "%CERT%\Project Falcon.pfx" >nul 2>&1 || goto :error
-certutil -f -addstore My              "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
-certutil -f -addstore Root            "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
-certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
+echo [2/4] Relocating component directories...
+move "%DST%\amdxe"         "%DSTPARENT%\amdxe"         || goto :error
+move "%DST%\amdwin"        "%DSTPARENT%\amdwin"        || goto :error
+move "%DST%\amdpcibridge"  "%DSTPARENT%\amdpcibridge"  || goto :error
+move "%DST%\amdocl"        "%DSTPARENT%\amdocl"        || goto :error
+move "%DST%\amdfendr"      "%DSTPARENT%\amdfendr"      || goto :error
+move "%DST%\amdfdans"      "%DSTPARENT%\amdfdans"      || goto :error
 echo       Done.
 
 echo [3/4] Installing driver - please be patient, this may take a moment...
-start /b /w pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
+pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
+pnputil /scan-devices
 echo       Done.
 
 echo [4/4] Installing WHQL Digital Signature Link...
-start /b /w pnputil /add-driver "%SRC%\whql\u0412654.inf" /install || goto :error
+pnputil /add-driver "%SRC%\whql\u0412654_whql.inf" /install || goto :error
 pnputil /scan-devices
+::pnputil /add-driver "%SRC%\whql2\u0380612_msft.inf" /install || goto :error
+::pnputil /add-driver "%SRC%\whql3\u0410212_msft.inf" /install || goto :error
+::pnputil /scan-devices
 echo       Done.
 
 echo.
