@@ -33,13 +33,17 @@ copy /y "%SRC%\u0412654.cat" "%DST%\" >nul || goto :error
 echo       Done.
 
 echo [2/4] Relocating component directories...
-move "%DST%\amdxe"         "%DSTPARENT%\amdxe"         || goto :error
-move "%DST%\amdwin"        "%DSTPARENT%\amdwin"        || goto :error
-move "%DST%\amdpcibridge"  "%DSTPARENT%\amdpcibridge"  || goto :error
-move "%DST%\amdocl"        "%DSTPARENT%\amdocl"        || goto :error
-move "%DST%\amdfendr"      "%DSTPARENT%\amdfendr"      || goto :error
-move "%DST%\amdfdans"      "%DSTPARENT%\amdfdans"      || goto :error
-echo       Done.
+if exist "%DSTPARENT%\amdxe" (
+    echo       Already relocated - skipping.
+) else (
+    move "%DST%\amdxe"         "%DSTPARENT%\amdxe"         || goto :error
+    move "%DST%\amdwin"        "%DSTPARENT%\amdwin"        || goto :error
+    move "%DST%\amdpcibridge"  "%DSTPARENT%\amdpcibridge"  || goto :error
+    move "%DST%\amdocl"        "%DSTPARENT%\amdocl"        || goto :error
+    move "%DST%\amdfendr"      "%DSTPARENT%\amdfendr"      || goto :error
+    move "%DST%\amdfdans"      "%DSTPARENT%\amdfdans"      || goto :error
+    echo       Done.
+)
 
 echo [3/4] Installing driver - please be patient, this may take a moment...
 pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
