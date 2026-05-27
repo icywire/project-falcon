@@ -4,23 +4,25 @@
 The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died.  
 **RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
 
-## Falcon Drivers
+## Current state
+✅ RDNA1/RDNA2 (Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
+🚧 WHQL workaround - work in progress  
+⏳ Radeon 5600M - on TODO list  
+⏳ Polaris/Vega - on TODO list
 
-### AMD 25.2.1 (most stable)
+## Drivers
 
-This driver is based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver — no binaries are modified.  
-All AMD Radeon 5xxx/6xxx cards (RDNA1/RDNA2) from Macs should work (except 5600M)
+### Versions
 
-### AMD 26.5.2
-
-(Work in progress)
+* AMD 25.2.1 - stable - based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver (no binaries modified)
+* AMD 26.5.2 - work in progress..
 
 ### Installation
 
 1. Uninstall the existing GPU driver manually or using DDU or RAPR (see Tools section below)
 2. Download the official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) base driver and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
 3. Download or clone this repository
-4. Run `install-driver.cmd` — it will patch base driver and 
+4. Run `install-driver.cmd` — it will patch base driver and install it (sometime it hangs, just hit Enter after minute or so)
 5. Done
 
 ## Overclocking/undervolting mobile cards
