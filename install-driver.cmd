@@ -48,7 +48,7 @@ certutil -f -addstore Root            "%CERT%\Project Falcon.cer" >nul 2>&1 || g
 certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 echo       Done.
 
-echo [3/3] Installing driver - please be patient, this will take a while...
+echo [3/3] Installing driver - this sometimes freeze, press Enter after a minute or so...
 pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
 echo       Done.
 
