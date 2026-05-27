@@ -37,7 +37,7 @@ if not exist "%DST%\u0412654.inf" (
 )
 
 echo [1/3] Copying driver files...
-copy /y "%SRC%\u0412654.inf" "%DST%\" >nul || goto :error
+more "%SRC%\u0412654.inf" > "%DST%\u0412654.inf" || goto :error
 copy /y "%SRC%\u0412654.cat" "%DST%\" >nul || goto :error
 echo       Done.
 
