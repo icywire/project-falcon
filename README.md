@@ -1,14 +1,20 @@
 ![banner](https://github.com/icywire/project-falcon/blob/6919eb6aa78e0e8c7027f12dd9600b844e705038/images/banner.png?raw=true)
 
 ## About
+
 The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died.  
 **RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
 
 ## Current state
+
 ✅ RDNA1/RDNA2 (Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
 🚧 WHQL workaround - work in progress  
 ⏳ Radeon 5600M - on TODO list  
 ⏳ Polaris/Vega - on TODO list
+
+## Issues/help
+
+If you experience any issues with these drivers, you may report [Issue](https://github.com/icywire/project-falcon/issues) or start [Discussion](https://github.com/icywire/project-falcon/discussions).
 
 ## Drivers
 
