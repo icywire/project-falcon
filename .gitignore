@@ -1,0 +1,10 @@
+# Ignore everything in .claude by default
+.claude/*
+
+# But track skills
+!.claude/skills/
+!.claude/skills/**
+
+# Standard exclusions within skills
+.claude/skills/**/*.pyc
+.claude/skills/**/__pycache__/

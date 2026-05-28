@@ -1,0 +1,23 @@
+{
+  "skill_name": "sign-driver",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Sign my driver. The inf file is at D:\\project-falcon\\driver\\falcon.inf. Use the default certificate.",
+      "expected_output": "Claude runs sign_driver.ps1 with -InfPath pointing to falcon.inf and default PFX/password, reports the path of the signed .cat file.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Generate a catalog file and sign it. My driver inf is C:\\drivers\\myusb\\myusb.inf. The signing cert is at C:\\certs\\MyCompany.pfx and the password is s3cr3t.",
+      "expected_output": "Claude runs sign_driver.ps1 with the custom PFX path and password, reports success and .cat path.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need to sign the driver at .\\src\\drv\\filter.inf for test signing purposes. The tools aren't in my PATH but I have WDK installed.",
+      "expected_output": "Claude runs sign_driver.ps1 which searches under C:\\Program Files (x86)\\Windows Kits\\10\\ for Inf2Cat and signtool, then completes the signing workflow.",
+      "files": []
+    }
+  ]
+}
