@@ -49,17 +49,14 @@ certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || 
 echo       Done.
 
 echo [3/3] Installing driver - this sometimes freeze, press Enter after a minute or so...
-pnputil /add-driver "%DST%\u0412654.inf" /install || goto :error
+start /b /w pnputil /add-driver "%DST%\u0412654.inf" /install
 echo       Done.
 
-echo.
-echo Done.
-goto :end
+:exit
+pause
+exit /b 0
 
 :error
 echo.
 echo ERROR: Script failed (step above returned a non-zero exit code).
-
-:end
-echo.
 pause
