@@ -112,6 +112,31 @@ Controls whether Frame Buffer Compression is disabled when a fullscreen applicat
 
 ---
 
+## DalPSRFeatureEnable
+
+Controls Panel Self-Refresh (PSR) — an eDP power-saving feature where the GPU stops sending frame data to the panel when the image is static. The panel stores the last frame in its own local buffer and self-refreshes without GPU involvement.
+
+> ⚠️ **Must be set to `0`.** Leaving PSR enabled causes **severe display stuttering**. Keep this key explicitly set to `0` in every device section.
+
+- **Type:** `REG_DWORD`
+
+| Value | Meaning |
+|-------|---------|
+| `0` | PSR disabled ✅ |
+| `1` | PSR enabled — causes stuttering ❌ |
+
+| Driver | Value |
+|--------|-------|
+| Falcon / Adrenalin 25.2.1 | `0` |
+| Bootcamp 24.10.1 | `0` |
+| RID 25.3.1 | `0` |
+| Apple macpro / r6.4 | `0` |
+
+**Power:** PSR would normally save ~10–15% panel power at idle, but the stutter regression makes it unusable.
+**Stability:** Enabling PSR causes large, reproducible frame stutters on affected hardware. Always disable explicitly — do not rely on the driver default.
+
+---
+
 ## KMD_BackingStoreMgrEnabled
 
 Controls the KMD Backing Store Manager — a WDDM 3.1 feature (Windows 11 22H2+) that maintains a committed system-memory buffer holding GPU allocation contents when evicted from VRAM. Both UMD and KMD can access this shared backing store, enabling more efficient memory residency tracking and paging under VRAM pressure.
@@ -130,7 +155,7 @@ Controls the KMD Backing Store Manager — a WDDM 3.1 feature (Windows 11 22H2+)
 | RID 25.3.1 | `0` |
 | Apple macpro / r6.4 | not set |
 
-**Performance:** When enabled, reduces overhead when GPU allocations are paged in/out under VRAM pressure. RID disables it likely because it targets older Windows versions that predate WDDM 3.1. Older Apple and Bootcamp drivers similarly do not target this feature.
+**Performance:** When enabled, reduces overhead when GPU allocations are paged in/out under VRAM pressure. 
 
 > **Note:** Exact behavior is inferred from the WDDM 3.1 framework; this key is not publicly documented by AMD.
 
