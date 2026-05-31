@@ -11598,11 +11598,9 @@ HKR,,DalDPSkipPowerOff,%REG_DWORD%,1
 HKR,,DalFeatureBacklightControl,%REG_DWORD%,0
 HKR,,DALNonStandardModesBCD1,%REG_BINARY%,20,48,12,80,00,00,00,60,19,20,12,00,00,00,00,60,23,04,14,40,00,00,00,60,17,92,11,20,00,00,00,60,37,58,22,40,00,00,00,60
 HKR,,DalPSRFeatureEnable,%REG_DWORD%,0
-;;HKR,,DalVSRInitiallyDefaultToOff,%REG_DWORD%,1
-;;HKR,,DisableWorkstation,%REG_DWORD%,1
+HKR,,DisableWorkstation,%REG_DWORD%,1
 HKR,,KMD_BootCampPlatform,%REG_DWORD%,1
 HKR,,KMD_EnableBrightnessInterface2,%REG_DWORD%,0
-;;HKR,,KMD_EnableDisplayableSupport,%REG_DWORD%,0
 HKR,,KMD_MPOSupport,%REG_DWORD%,0
 HKR,,PP_Apple_Bootcamp_Enable,%REG_DWORD%,1
 HKR,,PP_EnableLoadFalconSmcFirmware,%REG_DWORD%,1
@@ -11610,14 +11608,8 @@ HKR,,PP_Falcon_QuickTransition_Enable,%REG_DWORD%,1
 HKR,,PP_VariBrightFeatureEnable,%REG_DWORD%,0
 ;; part 2
 HKR,,mobile_runtime_component_NA,%REG_SZ%,false
-;;HKR,,MiscControl,%REG_DWORD%,1  ; RID=0x01FDD7B8
 HKR,,MobileLinkOverCloudAuth_NA,%REG_DWORD%,0
 HKR,,ReportAnalytics,%REG_DWORD%,0
-;;HKR,UMD,ASD_DEF,%REG_SZ%,0
-;;HKR,UMD,SurfaceFormatReplacements_DEF,%REG_SZ%,1
-;;HKR,,UseExecuteIndirectPacket,%REG_DWORD%,0  ; RID=1
-;;HKR,,EnableUlps,%REG_DWORD%,0
-;;HKR,,PP_GfxOffControl,%REG_DWORD%,0
 
 [ati2mtag_RemoveDeviceSettings]
 HKR,,"Adaptive De-interlacing"
