@@ -12,9 +12,13 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 ⏳ Radeon 5600M - on TODO list  
 ⏳ Polaris/Vega - on TODO list
 
-## Issues/help
+## Community/issues/help
 
-If you experience any issues with these drivers, you may report [Issue](https://github.com/icywire/project-falcon/issues) or start [Discussion](https://github.com/icywire/project-falcon/discussions).
+[Join discord](https://discord.gg/JrUCrVhFqz)
+
+[Report issues](https://github.com/icywire/project-falcon/issues)
+
+[Start discussion](https://github.com/icywire/project-falcon/discussions)
 
 ## Drivers
 
