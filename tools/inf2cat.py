@@ -2,8 +2,8 @@
 """
 inf2cat.py  —  Generate a Windows driver Security Catalog (.cat) file.
 
-Replicates Microsoft's Inf2Cat WDK tool without requiring the WDK.
-Produces an *unsigned* .cat that can then be signed with signtool.
+Replicates Microsoft's Inf2Cat WDK tool without requiring the WDK or any
+Windows API.  Produces an *unsigned* .cat that can then be signed with signtool.
 
 Usage:
     python inf2cat.py <driver_dir> --os 10_X64
@@ -13,21 +13,55 @@ Usage:
 Requirements:
     Python 3.6+  —  no third-party dependencies.
 
-Notes:
-    - Files listed in [SourceDisksFiles] that cannot be found are skipped with
-      a warning.  The .inf file itself is always included in the catalog.
-    - SHA-256 is computed on the raw file bytes.  If any input file already
-      carries an Authenticode signature the hash will differ from what Windows
-      Inf2Cat produces (which strips the existing signature before hashing).
-      For unsigned driver packages this is never an issue.
-    - The generated .cat is a v2 catalog (SHA-256, OID 1.3.6.1.4.1.311.12.1.3),
-      which is the current Inf2Cat default for Windows 10+.
+Catalog format
+--------------
+The generated .cat is a v2 catalog (SHA-256, OID 1.3.6.1.4.1.311.12.1.3),
+which is the current Inf2Cat default for Windows 10+.  It is a DER-encoded
+PKCS#7 SignedData structure wrapping a Microsoft CTL (Certificate Trust List).
+
+File hashing
+------------
+Each file listed in [SourceDisksFiles] (plus the .inf itself) gets a
+SubjectIdentifier entry in the CTL.  The hash stored there depends on file type:
+
+  PE files (.exe, .dll, .sys, …)
+      Authenticode hash — SHA-256 over the file excluding:
+        • the 4-byte checksum in the Optional Header
+        • the 8-byte IMAGE_DIRECTORY_ENTRY_SECURITY data-directory entry
+        • the certificate table (Authenticode signature blob, if any)
+      References:
+        https://download.microsoft.com/download/9/c/5/9c5b2167-8017-4bae-9fde-d599bac8184a/Authenticode_PE.docx
+        https://github.com/LINBIT/generate-cat-file  (strip-pe-image.c)
+
+  Signed Cabinet files (.cab with FLAG_RESERVE_PRESENT + embedded PKCS#7)
+      The hash is read directly from the SpcIndirectDataContent.messageDigest
+      field inside the appended PKCS#7 blob — equivalent to running
+      CryptCATAdminCalcHashFromFileHandle2 on the file.
+
+  Unsigned Cabinet files (.cab without a reserve/signature header)
+      osslsigncode algorithm: SHA-256 over data[0:4] + data[8:] — the entire
+      file except the 4-byte reserved1 field at offset 4.
+      References:
+        https://github.com/mtrojnar/osslsigncode  (cab.c — cab_digest_calc)
+        https://github.com/Devolutions/psign      (crates/psign-sip-digest/src/cab_digest.rs)
+
+  All other files
+      Plain SHA-256 of the raw file bytes.
+
+Notes
+-----
+- Files listed in [SourceDisksFiles] that cannot be found are skipped with a
+  warning.  The .inf file itself is always included in the catalog.
+- Files in [SignatureAttributes.PETrust] get a "PETrusted" attribute appended
+  to their CTL entry; Inf2Cat also adds a second supplementary entry for these
+  files (cert-fingerprint related) that this script does not replicate.
 """
 
 import argparse
 import hashlib
 import os
 import re
+import struct
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -476,12 +510,137 @@ def find_file(base_dir: str, filename: str) -> str | None:
     return None
 
 
+def _pe_authenticode_hash(data: bytes) -> bytes | None:
+    """
+    Compute the Authenticode SHA-256 hash of PE file bytes, matching Inf2Cat behavior.
+
+    The hash covers the entire file EXCEPT:
+      - The 4-byte checksum field in the Optional Header
+      - The 8-byte IMAGE_DIRECTORY_ENTRY_SECURITY entry in the Data Directory
+      - The certificate table itself (the actual Authenticode signature blob)
+
+    For unsigned PE files the certificate table is absent (RVA=0/Size=0), so only
+    the checksum and the zeroed security directory entry are excluded.
+    Returns None if the bytes are not a valid PE (caller falls back to raw SHA-256).
+    """
+    try:
+        pe_off = struct.unpack_from("<I", data, 0x3C)[0]
+        if data[pe_off : pe_off + 4] != b"PE\x00\x00":
+            return None
+        opt_off = pe_off + 24                          # 4-byte sig + 20-byte COFF header
+        magic   = struct.unpack_from("<H", data, opt_off)[0]
+        if magic == 0x10B:                             # PE32
+            cksum_off = opt_off + 64
+            dirs_off  = opt_off + 96
+        elif magic == 0x20B:                           # PE32+
+            cksum_off = opt_off + 64
+            dirs_off  = opt_off + 112
+        else:
+            return None
+        secdir_off = dirs_off + 32                     # index 4 × 8 bytes per entry
+        cert_rva   = struct.unpack_from("<I", data, secdir_off)[0]
+        cert_size  = struct.unpack_from("<I", data, secdir_off + 4)[0]
+
+        h = hashlib.sha256()
+        h.update(data[:cksum_off])                         # before checksum
+        h.update(data[cksum_off + 4 : secdir_off])         # after checksum → before secdir entry
+        if cert_rva:
+            h.update(data[secdir_off + 8 : cert_rva])      # after secdir entry → before cert blob
+            h.update(data[cert_rva + cert_size :])         # after cert blob → EOF
+        else:
+            h.update(data[secdir_off + 8 :])               # after secdir entry → EOF (no cert)
+        return h.digest()
+    except Exception:
+        return None
+
+
+_FLAG_RESERVE_PRESENT = 0x0004
+
+
+def _cab_authenticode_hash(data: bytes) -> bytes | None:
+    """Return the Authenticode hash of a Cabinet (.cab) file.
+
+    Signed CABs (FLAG_RESERVE_PRESENT set, sigpos/siglen non-zero):
+        The hash is read directly from the SpcIndirectDataContent.messageDigest
+        embedded in the appended PKCS7 blob.  This avoids re-implementing the
+        full CAB hash algorithm for the common case.
+
+    Unsigned CABs (no reserve header):
+        Algorithm follows osslsigncode / Devolutions psign cab_digest.rs:
+        SHA-256 over data[0:4] + data[8:] — the whole file except the 4-byte
+        reserved1 field at offset 4.  This matches what Windows
+        CryptCATAdminCalcHashFromFileHandle2 returns for unsigned CABs.
+
+    Returns None for non-CAB data; caller falls back to raw SHA-256.
+    """
+    try:
+        if data[:4] != b"MSCF":
+            return None
+        flags = struct.unpack_from("<H", data, 30)[0]
+
+        if flags & _FLAG_RESERVE_PRESENT:
+            # Signed CAB — read SpcIndirectDataContent hash from embedded PKCS7.
+            # header_size is the 4-byte LE value at offset 36 (cbCFHeader[2] +
+            # cbCFFolder[1] + cbCFData[1]); must equal 20 (0x14).
+            header_size = struct.unpack_from("<I", data, 36)[0]
+            if header_size != 20:
+                return None
+            if struct.unpack_from("<I", data, 40)[0] != 0x00100000:  # abReserve marker
+                return None
+            sigpos = struct.unpack_from("<I", data, 44)[0]
+            siglen = struct.unpack_from("<I", data, 48)[0]
+            if sigpos == 0 or siglen == 0:
+                return None
+            sig = data[sigpos : sigpos + siglen]
+            if not sig or sig[0] != 0x30:
+                return None
+            # Locate the first DigestInfo(SHA-256, hash) in the PKCS7 blob.
+            # Pattern: SHA-256 OID (11 bytes) + optional NULL (2 bytes) + OCTET STRING(32).
+            sha256_oid = bytes.fromhex("0609608648016503040201")
+            search = sig[:4096]
+            pos = 0
+            while True:
+                pos = search.find(sha256_oid, pos)
+                if pos == -1:
+                    return None
+                after = pos + 11
+                if search[after : after + 2] == b"\x05\x00":
+                    after += 2
+                if after + 34 <= len(search) and search[after] == 0x04 and search[after + 1] == 0x20:
+                    return search[after + 2 : after + 34]
+                pos += 1
+        else:
+            # Unsigned CAB — hash everything except reserved1 (bytes 4–7).
+            h = hashlib.sha256()
+            h.update(data[0:4])
+            h.update(data[8:])
+            return h.digest()
+    except Exception:
+        return None
+
+
 def sha256_of(path: str) -> bytes:
-    h = hashlib.sha256()
+    """Return the catalog hash of a file, matching Inf2Cat behavior.
+
+    - PE files        : Authenticode hash (excludes checksum, security dir
+                        entry, and certificate table).
+    - Signed CABs     : hash read from the embedded SpcIndirectDataContent
+                        digest (equivalent to CryptCATAdminCalcHashFromFileHandle2).
+    - Unsigned CABs   : SHA-256 over the file excluding the 4-byte reserved1
+                        field (osslsigncode / psign algorithm).
+    - Everything else : plain SHA-256.
+    """
     with open(path, "rb") as fh:
-        while chunk := fh.read(65536):
-            h.update(chunk)
-    return h.digest()
+        data = fh.read()
+    if data[:2] == b"MZ":
+        h = _pe_authenticode_hash(data)
+        if h is not None:
+            return h
+    if data[:4] == b"MSCF":
+        h = _cab_authenticode_hash(data)
+        if h is not None:
+            return h
+    return hashlib.sha256(data).digest()
 
 
 def is_pe_file(path: str) -> bool:
