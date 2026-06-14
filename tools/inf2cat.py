@@ -242,7 +242,8 @@ def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> 
     )
 
 
-def _build_ctl_body(entries_der: bytes, list_id: bytes, timestamp: datetime) -> bytes:
+def _build_ctl_body(entries_der: bytes, list_id: bytes, timestamp: datetime,
+                    hwid_ext: bytes = b"") -> bytes:
     """
     Inner CTL (Certificate Trust List) body — Microsoft's proprietary format:
 
@@ -255,6 +256,7 @@ def _build_ctl_body(entries_der: bytes, list_id: bytes, timestamp: datetime) -> 
           NULL
         }
         SEQUENCE { ... CTL entries ... }  -- CTLEntries
+        [0] EXPLICIT { SEQUENCE { ... } } -- Extensions: OS + HWID section (optional)
       }
     """
     return der_seq(
@@ -263,6 +265,7 @@ def _build_ctl_body(entries_der: bytes, list_id: bytes, timestamp: datetime) -> 
         der_utctime(timestamp),
         der_seq(der_oid(OID_CATALOG_LIST_MEMBER_V2), der_null()),
         der_seq(entries_der),
+        hwid_ext,   # b"" when no HWID section
     )
 
 
@@ -303,9 +306,135 @@ def _build_pkcs7(ctl_body: bytes) -> bytes:
     )
 
 
+def _build_ext_namevalue(name: str, value: str, flags: int = _NAME_VALUE_FLAGS) -> bytes:
+    """
+    NAMEVALUE entry for the catalog extension section.
+    Identical to per-file NameValue but wrapped in OCTET STRING (04) instead of SET (31).
+    Verified against real Inf2Cat output for HWID and OS entries.
+    """
+    body = der_seq(
+        der_bmp(name),
+        der_int(flags),
+        der_octet(_utf16le_nul(value)),
+    )
+    return der_seq(der_oid(OID_CAT_NAMEVALUE), der_octet(body))
+
+
+def _decorator_to_os_value(decorator: str) -> str | None:
+    """
+    Convert an INF OS decorator to the catalog OS value format.
+    Examples: 'NTamd64.10.0' -> '_v100_X64',  'NTx86.6.3' -> '_v63_X86'
+    """
+    d = decorator.lower().strip()
+    if not d.startswith("nt"):
+        return None
+    if "arm64" in d:
+        arch = "ARM64"
+    elif "ia64" in d:
+        arch = "IA64"
+    elif "amd64" in d:
+        arch = "X64"
+    else:
+        arch = "X86"
+    m = re.search(r"\.(\d+)\.(\d+)", d)
+    if not m:
+        return None
+    version = m.group(1) + m.group(2)  # "10.0" -> "100", "6.3" -> "63"
+    return "_v%s_%s" % (version, arch)
+
+
+def _build_hwid_section(hwids: list[str], os_values: list[str]) -> bytes:
+    """
+    Catalog extension block appended after CTLEntries in the CTL body:
+
+      [0] EXPLICIT {
+        SEQUENCE {
+          SEQUENCE { OID(CAT_NAMEVALUE) OCTET_STRING { SEQ{ BMP("OS") ... } } }  -- per OS
+          SEQUENCE { OID(CAT_NAMEVALUE) OCTET_STRING { SEQ{ BMP("HWIDn") ... } } }
+          ...
+          SEQUENCE { OID(CAT_NAMEVALUE) OCTET_STRING { SEQ{ BMP("HWID0") ... } } }
+        }
+      }
+
+    HWIDs are numbered n-1 down to 0 (highest first), matching real Inf2Cat output.
+    OS values come from INF [Manufacturer] decorators (e.g. 'NTamd64.10.0' -> '_v100_X64').
+    """
+    entries: list[bytes] = []
+    # PE=TRUSTED is always the first entry; flags differ (0x10001 not 0x10010001)
+    entries.append(_build_ext_namevalue("PE", "TRUSTED", 0x10001))
+    for os_val in os_values:
+        entries.append(_build_ext_namevalue("OS", os_val))
+    # HWID_number = INF_line_index + 1 (1-based).
+    # Stored in descending order (highest number first), so iterate reversed.
+    n = len(hwids)
+    for i, hwid in enumerate(reversed(hwids)):
+        entries.append(_build_ext_namevalue("HWID%d" % (n - i), hwid))
+    return der_ctx(0, der_seq(b"".join(entries)))
+
+
 # ---------------------------------------------------------------------------
 # INF parsing
 # ---------------------------------------------------------------------------
+
+def parse_inf_hwids(inf_path: str) -> tuple[list[str], list[str]]:
+    """
+    Parse hardware IDs and OS values from an INF's [Manufacturer] / [Models] sections.
+    Returns (hwids, os_values):
+      hwids     -- lowercase PnP IDs like 'pci\\ven_1002&dev_7340', deduplicated, in order
+      os_values -- catalog OS strings like '_v100_X64', derived from [Manufacturer] decorators
+    """
+    with open(inf_path, encoding="utf-8-sig", errors="replace") as fh:
+        content = fh.read()
+
+    hwids: list[str] = []
+    seen_hwids: set[str] = set()
+    os_values: list[str] = []
+    seen_os: set[str] = set()
+
+    mfg_match = re.search(
+        r"^\[Manufacturer\](.*?)(?=^\[|\Z)",
+        content, re.MULTILINE | re.DOTALL | re.IGNORECASE,
+    )
+    if not mfg_match:
+        return hwids, os_values
+
+    model_section_names: list[str] = []
+    for line in mfg_match.group(1).splitlines():
+        line = re.sub(r";.*", "", line).strip()
+        if not line or "=" not in line:
+            continue
+        rhs = line.split("=", 1)[1].strip()
+        parts = [p.strip() for p in rhs.split(",")]
+        base_section = parts[0]
+        decorators = [d for d in parts[1:] if d]
+        for d in decorators:
+            ov = _decorator_to_os_value(d)
+            if ov and ov not in seen_os:
+                seen_os.add(ov)
+                os_values.append(ov)
+            model_section_names.append("%s.%s" % (base_section, d))
+        model_section_names.append(base_section)
+
+    for section_name in model_section_names:
+        pattern = r"^\[%s\](.*?)(?=^\[|\Z)" % re.escape(section_name)
+        sec_match = re.search(pattern, content, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+        if not sec_match:
+            continue
+        for line in sec_match.group(1).splitlines():
+            line = re.sub(r";.*", "", line).strip()
+            if not line or "=" not in line:
+                continue
+            rhs = line.split("=", 1)[1].strip()
+            parts = [p.strip() for p in rhs.split(",")]
+            # parts[0] = install section; parts[1:] = hardware IDs
+            for hwid in parts[1:]:
+                hwid = hwid.strip().lower()
+                if hwid and hwid not in seen_hwids:
+                    seen_hwids.add(hwid)
+                    hwids.append(hwid)
+
+    return hwids, os_values
+
 
 def parse_inf(inf_path: str) -> tuple[str | None, list[str]]:
     """Return (catalog_filename, [source_file_names])."""
@@ -394,6 +523,10 @@ def main() -> None:
     catalog_name: str | None = None
     all_filenames: list[str] = []
     seen: set[str] = set()
+    all_hwids: list[str] = []
+    all_os_values: list[str] = []
+    seen_hwids: set[str] = set()
+    seen_os: set[str] = set()
 
     for inf_name in inf_files:
         inf_path = os.path.join(driver_dir, inf_name)
@@ -408,6 +541,15 @@ def main() -> None:
             if fname.lower() not in seen:
                 seen.add(fname.lower())
                 all_filenames.append(fname)
+        hwids, os_values = parse_inf_hwids(inf_path)
+        for hwid in hwids:
+            if hwid not in seen_hwids:
+                seen_hwids.add(hwid)
+                all_hwids.append(hwid)
+        for ov in os_values:
+            if ov not in seen_os:
+                seen_os.add(ov)
+                all_os_values.append(ov)
 
     if args.out:
         catalog_name = args.out
@@ -447,8 +589,13 @@ def main() -> None:
     entries_der = b"".join(_build_entry(fname, h, OS_ATTR, pe) for fname, h, pe in entries)
     list_id = uuid.uuid4().bytes
     timestamp = datetime.now(timezone.utc)
+    # Keep only OS extension values whose NT version matches our hardcoded OS_ATTR target.
+    # OS_ATTR "2:10.0" -> NT version "100"; filter to e.g. ["_v100_X64"] only.
+    target_ver = OS_ATTR.split(":", 1)[1].replace(".", "")  # "2:10.0" -> "100"
+    matched_os = [v for v in all_os_values if v.startswith("_v%s_" % target_ver)]
+    hwid_ext = _build_hwid_section(all_hwids, matched_os) if (all_hwids or matched_os) else b""
 
-    ctl_body  = _build_ctl_body(entries_der, list_id, timestamp)
+    ctl_body  = _build_ctl_body(entries_der, list_id, timestamp, hwid_ext)
     cat_bytes = _build_pkcs7(ctl_body)
 
     # Write
@@ -459,6 +606,9 @@ def main() -> None:
     print(f"[OK]   {out_path}")
     print(f"       {len(entries)} file(s) cataloged  ({pe_count} PE, {non_count} non-PE)")
     print(f"       OSAttr = \"{OS_ATTR}\"")
+    if all_hwids:
+        os_str = ", ".join(matched_os) if matched_os else "(none)"
+        print(f"       {len(all_hwids)} hardware ID(s) in HWID section  OS: {os_str}")
     if missing:
         print(f"       {len(missing)} skipped (not found)")
     print()
