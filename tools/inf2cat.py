@@ -140,6 +140,7 @@ OID_CAT_NAMEVALUE            = "1.3.6.1.4.1.311.12.2.1"
 OID_CAT_MEMBERINFO_V2        = "1.3.6.1.4.1.311.12.2.3"
 OID_SPC_INDIRECT_DATA        = "1.3.6.1.4.1.311.2.1.4"
 OID_SPC_PE_IMAGE_DATA        = "1.3.6.1.4.1.311.2.1.15"
+OID_SPC_CAB_DATA             = "1.3.6.1.4.1.311.2.1.25"
 OID_SHA256                   = "2.16.840.1.101.3.4.2.1"
 
 
@@ -164,52 +165,42 @@ def _build_namevalue(name: str, value: str) -> bytes:
     )
 
 
-def _build_spc(file_hash: bytes) -> bytes:
+def _build_spc(file_hash: bytes, is_pe: bool) -> bytes:
     """
     SPC_INDIRECT_DATA attribute value (the SET wrapping SpcIndirectDataContent).
 
-    Structure verified against a real AMD/Inf2Cat-generated .cat file:
+    PE files use SPC_PE_IMAGE_DATA (.2.1.15):
+      SEQ { OID(SPC_PE_IMAGE_DATA)  SEQ { BIT_STRING(a0,5unused)  [0]{[2]{[0]empty}} } }
 
-      SET {
-        SEQ {                             -- SpcIndirectDataContent
-          SEQ {                           -- SpcAttributeTypeAndOptionalValue
-            OID(SPC_PE_IMAGE_DATA)
-            SEQ {                         -- SpcPeImageData
-              BIT STRING 0xa0 (5 unused)  -- flags
-              [0] { [2] { [0] empty } }   -- empty file link
-            }
-          }
-          SEQ {                           -- DigestInfo
-            SEQ { OID(sha256), NULL }
-            OCTET STRING[32]              -- SHA-256 hash
-          }
-        }
-      }
+    Non-PE files use SPC_CAB_DATA (.2.1.25):
+      SEQ { OID(SPC_CAB_DATA)  [2]{[0]empty} }
+
+    Both verified against a real Inf2Cat-generated .cat file.
     """
-    flags_bs = b"\x03\x02\x05\xa0"   # BIT STRING, 2 bytes, 5 unused bits, value 0xa0
-
-    spc_link = der_ctx(0,
-        der_ctx(2,
-            der_ctx_implicit(0),
+    if is_pe:
+        flags_bs = b"\x03\x02\x05\xa0"   # BIT STRING, 2 bytes, 5 unused bits, value 0xa0
+        spc_link = der_ctx(0, der_ctx(2, der_ctx_implicit(0)))
+        spc_content = der_seq(
+            der_oid(OID_SPC_PE_IMAGE_DATA),
+            der_seq(flags_bs, spc_link),
         )
-    )
-    spc_pe_image_data = der_seq(flags_bs, spc_link)
-
-    spc_attr_type = der_seq(
-        der_oid(OID_SPC_PE_IMAGE_DATA),
-        spc_pe_image_data,
-    )
+    else:
+        spc_link = der_ctx(2, der_ctx_implicit(0))   # [2] { [0] empty }
+        spc_content = der_seq(
+            der_oid(OID_SPC_CAB_DATA),
+            spc_link,
+        )
 
     digest_info = der_seq(
         der_seq(der_oid(OID_SHA256), der_null()),
         der_octet(file_hash),
     )
 
-    spc_indirect_data = der_seq(spc_attr_type, digest_info)
-    return der_set(spc_indirect_data)          # SET { SpcIndirectDataContent }
+    spc_indirect_data = der_seq(spc_content, digest_info)
+    return der_set(spc_indirect_data)
 
 
-def _build_entry(filename: str, file_hash: bytes, os_attr: str) -> bytes:
+def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> bytes:
     """
     One CTL entry:
       SEQUENCE {
@@ -239,7 +230,7 @@ def _build_entry(filename: str, file_hash: bytes, os_attr: str) -> bytes:
 
     spc_attr_seq = der_seq(
         der_oid(OID_SPC_INDIRECT_DATA),
-        _build_spc(file_hash),
+        _build_spc(file_hash, is_pe),
     )
 
     # der_set() sorts the members automatically (DER canonical order).
@@ -364,6 +355,15 @@ def sha256_of(path: str) -> bytes:
     return h.digest()
 
 
+def is_pe_file(path: str) -> bool:
+    """Return True if the file starts with the MZ PE magic bytes."""
+    try:
+        with open(path, "rb") as fh:
+            return fh.read(2) == b"MZ"
+    except OSError:
+        return False
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -417,7 +417,7 @@ def main() -> None:
 
     # Hash files
     print(f"[INFO] Hashing {len(all_filenames)} file(s) ...")
-    entries: list[tuple[str, bytes]] = []
+    entries: list[tuple[str, bytes, bool]] = []
     missing: list[str] = []
 
     for fname in all_filenames:
@@ -426,7 +426,7 @@ def main() -> None:
             missing.append(fname)
             continue
         h = sha256_of(path)
-        entries.append((fname, h))
+        entries.append((fname, h, is_pe_file(path)))
 
     if missing:
         print(f"[WARN] {len(missing)} file(s) not found (skipped):")
@@ -440,8 +440,11 @@ def main() -> None:
     # Sort by SubjectIdentifier (SHA-256 hash) — matches real Inf2Cat order
     entries.sort(key=lambda x: x[1])
 
+    pe_count  = sum(1 for _, _, pe in entries if pe)
+    non_count = len(entries) - pe_count
+
     # Build catalog
-    entries_der = b"".join(_build_entry(fname, h, OS_ATTR) for fname, h in entries)
+    entries_der = b"".join(_build_entry(fname, h, OS_ATTR, pe) for fname, h, pe in entries)
     list_id = uuid.uuid4().bytes
     timestamp = datetime.now(timezone.utc)
 
@@ -454,7 +457,7 @@ def main() -> None:
         fh.write(cat_bytes)
 
     print(f"[OK]   {out_path}")
-    print(f"       {len(entries)} file(s) cataloged")
+    print(f"       {len(entries)} file(s) cataloged  ({pe_count} PE, {non_count} non-PE)")
     print(f"       OSAttr = \"{OS_ATTR}\"")
     if missing:
         print(f"       {len(missing)} skipped (not found)")
