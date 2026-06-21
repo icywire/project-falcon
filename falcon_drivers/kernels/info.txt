@@ -1,0 +1,5 @@
+30.0.21030.1003
+- AMD Software Adrenalin Edition 22.6.1 WHQL
+- probably last kernel that supports Radeon Pro 5600M (Navi12 + HBM2 memory)
+- https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid=8b38c846-b0f7-487d-8a3d-fe770ff87cc1
+
