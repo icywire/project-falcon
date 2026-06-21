@@ -48,13 +48,49 @@ SubjectIdentifier entry in the CTL.  The hash stored there depends on file type:
   All other files
       Plain SHA-256 of the raw file bytes.
 
+Dual entries (SHA-256 + SHA-1)
+------------------------------
+Inf2Cat generates TWO CTL entries for every file:
+
+  1. Main entry (SubjectIdentifier = 32-byte SHA-256 hash):
+       Attributes: MemberInfoV2 + OSAttr + File + SpcIndirectDataContent
+     For files that are already signed (PE/CAB with embedded Authenticode),
+     the SpcIndirectDataContent is copied verbatim from the file's own PKCS#7
+     signature — which can be hundreds of KB (e.g. 747 KB for a dual-signed DLL).
+     For unsigned files a minimal DigestInfo-only SpcIndirectDataContent is built.
+
+  2. Supplementary entry (SubjectIdentifier = 20-byte SHA-1 hash):
+       Attributes: MemberInfoV2 + OSAttr + File  (NO SpcIndirectDataContent)
+     The SHA-1 hash algorithm follows the same logic as SHA-256 (Authenticode
+     for PE/CAB, plain for everything else), using SHA-1 instead.
+     For signed CABs the psign selective-field algorithm is used:
+       SHA-1 over: magic[4] + header[8:34] + padding[56:60] + folders + data[..sigpos]
+       References:
+         https://github.com/Devolutions/psign (crates/psign-sip-digest/src/cab_digest.rs)
+
+All entries (main + supplementary) are sorted together by their raw
+SubjectIdentifier bytes — SHA-1 and SHA-256 entries are interleaved in the output.
+
+SpcIndirectDataContent extraction
+-----------------------------------
+For pre-signed PE/CAB files, the SpcIndirectDataContent SEQUENCE is extracted
+from the file's embedded WIN_CERTIFICATE PKCS7 and embedded verbatim.  The
+PKCS7 may contain multiple SPC_INDIRECT_DATA_CONTENT OID occurrences; we pick
+the LARGEST SEQUENCE found (which contains page hashes via SpcSerializedObject
+when present).  For unsigned files a minimal DigestInfo-only SpcIDC is built.
+
+Limitation: if a PE was re-signed after the reference catalog was generated
+(same Authenticode hash, new signing chain), the embedded SpcIDC blobs will
+differ byte-for-byte even though all SubjectIdentifiers remain identical.
+Windows validates catalogs by SubjectIdentifier hash only, so this is correct
+for all practical uses.
+
 Notes
 -----
 - Files listed in [SourceDisksFiles] that cannot be found are skipped with a
   warning.  The .inf file itself is always included in the catalog.
 - Files in [SignatureAttributes.PETrust] get a "PETrusted" attribute appended
-  to their CTL entry; Inf2Cat also adds a second supplementary entry for these
-  files (cert-fingerprint related) that this script does not replicate.
+  to their CTL entry (not yet implemented in this script).
 """
 
 import argparse
@@ -79,6 +115,19 @@ OS_ATTR = "2:10.0"
 # ---------------------------------------------------------------------------
 # DER encoding primitives
 # ---------------------------------------------------------------------------
+
+def _der_read_len(data: bytes, pos: int) -> tuple[int, int]:
+    """Read a DER length at pos; return (length, new_pos)."""
+    if pos >= len(data):
+        return 0, pos
+    b = data[pos]; pos += 1
+    if b < 0x80:
+        return b, pos
+    n = b & 0x7F
+    if pos + n > len(data):
+        return 0, pos + n
+    return int.from_bytes(data[pos : pos + n], "big"), pos + n
+
 
 def _der_len(n: int) -> bytes:
     if n < 0x80:
@@ -199,18 +248,25 @@ def _build_namevalue(name: str, value: str) -> bytes:
     )
 
 
-def _build_spc(file_hash: bytes, is_pe: bool) -> bytes:
+def _build_spc(file_hash: bytes, is_pe: bool, spc_der: bytes | None = None) -> bytes:
     """
     SPC_INDIRECT_DATA attribute value (the SET wrapping SpcIndirectDataContent).
 
-    PE files use SPC_PE_IMAGE_DATA (.2.1.15):
-      SEQ { OID(SPC_PE_IMAGE_DATA)  SEQ { BIT_STRING(a0,5unused)  [0]{[2]{[0]empty}} } }
+    When spc_der is provided (extracted from the file's own embedded signature),
+    it is used verbatim as the SpcIndirectDataContent — this is what Inf2Cat does
+    for already-signed files (can be 100s of KB for dual-signed DLLs).
 
-    Non-PE files use SPC_CAB_DATA (.2.1.25):
-      SEQ { OID(SPC_CAB_DATA)  [2]{[0]empty} }
+    When spc_der is None, a minimal SpcIndirectDataContent is built from scratch:
+      PE files use SPC_PE_IMAGE_DATA (.2.1.15):
+        SEQ { OID(SPC_PE_IMAGE_DATA)  SEQ { BIT_STRING(a0,5unused)  [0]{[2]{[0]empty}} } }
+      Non-PE files use SPC_CAB_DATA (.2.1.25):
+        SEQ { OID(SPC_CAB_DATA)  [2]{[0]empty} }
 
     Both verified against a real Inf2Cat-generated .cat file.
     """
+    if spc_der is not None:
+        return der_set(spc_der)
+
     if is_pe:
         flags_bs = b"\x03\x02\x05\xa0"   # BIT STRING, 2 bytes, 5 unused bits, value 0xa0
         spc_link = der_ctx(0, der_ctx(2, der_ctx_implicit(0)))
@@ -234,9 +290,10 @@ def _build_spc(file_hash: bytes, is_pe: bool) -> bytes:
     return der_set(spc_indirect_data)
 
 
-def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> bytes:
+def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool,
+                  spc_der: bytes | None = None) -> bytes:
     """
-    One CTL entry:
+    One CTL entry (main, SHA-256):
       SEQUENCE {
         OCTET STRING  -- SubjectIdentifier = SHA-256 of file
         SET {         -- Attributes (DER-sorted)
@@ -246,10 +303,14 @@ def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> 
           SPC hash attribute
         }
       }
+
+    spc_der: pre-extracted SpcIndirectDataContent DER from the file's embedded
+    Authenticode signature; when provided it is used verbatim (may be very large
+    for pre-signed PE/CAB files).  Pass None to generate a minimal fallback.
     """
     member_info_v2 = der_seq(
         der_oid(OID_CAT_MEMBERINFO_V2),
-        der_set(der_ctx_implicit(0)),      # SET { [0] implicit empty }
+        der_set(der_ctx_implicit(2)),      # SET { [2] implicit empty } — matches Inf2Cat
     )
 
     os_attr_seq = der_seq(
@@ -264,7 +325,7 @@ def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> 
 
     spc_attr_seq = der_seq(
         der_oid(OID_SPC_INDIRECT_DATA),
-        _build_spc(file_hash, is_pe),
+        _build_spc(file_hash, is_pe, spc_der),
     )
 
     # der_set() sorts the members automatically (DER canonical order).
@@ -274,6 +335,39 @@ def _build_entry(filename: str, file_hash: bytes, os_attr: str, is_pe: bool) -> 
         der_octet(file_hash),
         attributes,
     )
+
+
+def _build_supplementary_entry(filename: str, sha1_hash: bytes, os_attr: str) -> bytes:
+    """
+    Supplementary SHA-1 CTL entry — one generated per file alongside the main SHA-256 entry.
+
+    Structure is identical to the main entry but:
+      - SubjectIdentifier is 20-byte SHA-1 (not 32-byte SHA-256)
+      - No SPC_INDIRECT_DATA attribute
+
+      SEQUENCE {
+        OCTET STRING  -- SubjectIdentifier = SHA-1 Authenticode hash
+        SET {
+          MemberInfoV2 attribute
+          OSAttr NameValue attribute
+          File NameValue attribute
+        }
+      }
+    """
+    member_info_v2 = der_seq(
+        der_oid(OID_CAT_MEMBERINFO_V2),
+        der_set(der_ctx_implicit(2)),
+    )
+    os_attr_seq = der_seq(
+        der_oid(OID_CAT_NAMEVALUE),
+        der_set(_build_namevalue("OSAttr", os_attr)),
+    )
+    file_attr_seq = der_seq(
+        der_oid(OID_CAT_NAMEVALUE),
+        der_set(_build_namevalue("File", filename)),
+    )
+    attributes = der_set(member_info_v2, os_attr_seq, file_attr_seq)
+    return der_seq(der_octet(sha1_hash), attributes)
 
 
 def _build_ctl_body(entries_der: bytes, list_id: bytes, timestamp: datetime,
@@ -643,6 +737,191 @@ def sha256_of(path: str) -> bytes:
     return hashlib.sha256(data).digest()
 
 
+def _pe_authenticode_hash_sha1(data: bytes) -> bytes | None:
+    """SHA-1 Authenticode hash of PE bytes; same field exclusions as the SHA-256 version."""
+    try:
+        pe_off = struct.unpack_from("<I", data, 0x3C)[0]
+        if data[pe_off : pe_off + 4] != b"PE\x00\x00":
+            return None
+        opt_off = pe_off + 24
+        magic   = struct.unpack_from("<H", data, opt_off)[0]
+        if magic == 0x10B:
+            cksum_off = opt_off + 64; dirs_off = opt_off + 96
+        elif magic == 0x20B:
+            cksum_off = opt_off + 64; dirs_off = opt_off + 112
+        else:
+            return None
+        secdir_off = dirs_off + 32
+        cert_rva   = struct.unpack_from("<I", data, secdir_off)[0]
+        cert_size  = struct.unpack_from("<I", data, secdir_off + 4)[0]
+        h = hashlib.sha1()
+        h.update(data[:cksum_off])
+        h.update(data[cksum_off + 4 : secdir_off])
+        if cert_rva:
+            h.update(data[secdir_off + 8 : cert_rva])
+            h.update(data[cert_rva + cert_size :])
+        else:
+            h.update(data[secdir_off + 8 :])
+        return h.digest()
+    except Exception:
+        return None
+
+
+def _cab_authenticode_hash_sha1(data: bytes) -> bytes | None:
+    """Return the SHA-1 Authenticode hash of a Cabinet file.
+
+    Signed CABs: psign selective-field algorithm using SHA-1 —
+        SHA-1 over: magic[0:4] + header_fields[8:34] + padding[56:60]
+                    + CFFOLDER entries + cabinet data up to sigpos.
+        Skips: reserved1[4:8], iCabinet area[34:56], and the signature itself.
+        Reference: Devolutions/psign (crates/psign-sip-digest/src/cab_digest.rs)
+
+    Unsigned CABs: SHA-1 over data[0:4] + data[8:] (same skip of reserved1).
+    """
+    try:
+        if data[:4] != b"MSCF":
+            return None
+        flags    = struct.unpack_from("<H", data, 30)[0]
+        nfolders = struct.unpack_from("<H", data, 26)[0]
+
+        if flags & _FLAG_RESERVE_PRESENT:
+            header_size = struct.unpack_from("<I", data, 36)[0]
+            if header_size != 20:
+                return None
+            sigpos = struct.unpack_from("<I", data, 44)[0]
+            if sigpos == 0:
+                return None
+            h = hashlib.sha1()
+            h.update(data[0:4])      # MSCF magic
+            h.update(data[8:34])     # header fields (cbCabinet..setID), skip reserved1[4:8]
+            # skip [34:56] — iCabinet + reserve descriptor bytes (sigpos/siglen fields)
+            h.update(data[56:60])    # trailing 4-byte reserve padding
+            off = 60
+            for _ in range(nfolders):
+                h.update(data[off : off + 8])
+                off += 8
+            h.update(data[off : sigpos])
+            return h.digest()
+        else:
+            h = hashlib.sha1()
+            h.update(data[0:4])
+            h.update(data[8:])
+            return h.digest()
+    except Exception:
+        return None
+
+
+def sha1_of(path: str) -> bytes:
+    """Return the SHA-1 catalog hash of a file (supplementary-entry algorithm).
+
+    Follows the same dispatch as sha256_of but using SHA-1:
+      - PE files        : SHA-1 Authenticode hash.
+      - Signed CABs     : psign selective-field SHA-1.
+      - Unsigned CABs   : SHA-1 over data[0:4] + data[8:].
+      - Everything else : plain SHA-1.
+    """
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if data[:2] == b"MZ":
+        h = _pe_authenticode_hash_sha1(data)
+        if h is not None:
+            return h
+    if data[:4] == b"MSCF":
+        h = _cab_authenticode_hash_sha1(data)
+        if h is not None:
+            return h
+    return hashlib.sha1(data).digest()
+
+
+# ---------------------------------------------------------------------------
+# SpcIndirectDataContent extraction (for pre-signed files)
+# ---------------------------------------------------------------------------
+
+# DER-encoded OID 1.3.6.1.4.1.311.2.1.4 (SpcIndirectDataContent)
+_SPC_INDIRECT_DATA_OID_DER = bytes.fromhex("060a2b060104018237020104")
+
+
+def _extract_spc_from_pkcs7(pkcs7: bytes) -> bytes | None:
+    """Extract SpcIndirectDataContent SEQUENCE DER from a PKCS7 SignedData blob.
+
+    Scans ALL occurrences of the SpcIndirectDataContent OID and returns the
+    LARGEST matching SEQUENCE.  The PKCS7 may contain multiple copies — a small
+    (~100 byte) version in the primary ContentInfo and a large version (possibly
+    hundreds of KB) elsewhere that includes page hashes via SpcSerializedObject.
+    Inf2Cat always embeds the largest one.
+    """
+    best: bytes | None = None
+    pos = 0
+    while True:
+        idx = pkcs7.find(_SPC_INDIRECT_DATA_OID_DER, pos)
+        if idx == -1:
+            break
+        try:
+            p = idx + len(_SPC_INDIRECT_DATA_OID_DER)
+            # ContentInfo value may be [0] EXPLICIT (0xa0) or bare SEQUENCE (0x30).
+            if p < len(pkcs7) and pkcs7[p] == 0xA0:
+                p += 1
+                _, p = _der_read_len(pkcs7, p)
+            if p < len(pkcs7) and pkcs7[p] == 0x30:
+                seq_start = p; p += 1
+                seq_len, p = _der_read_len(pkcs7, p)
+                candidate = pkcs7[seq_start : p + seq_len]
+                if best is None or len(candidate) > len(best):
+                    best = candidate
+        except Exception:
+            pass
+        pos = idx + 1
+    return best
+
+
+def _extract_pe_spc_indirect_data(data: bytes) -> bytes | None:
+    """Extract SpcIndirectDataContent DER from a PE file's embedded WIN_CERTIFICATE."""
+    try:
+        pe_off = struct.unpack_from("<I", data, 0x3C)[0]
+        if data[pe_off : pe_off + 4] != b"PE\x00\x00":
+            return None
+        opt_off = pe_off + 24
+        magic   = struct.unpack_from("<H", data, opt_off)[0]
+        if magic == 0x10B:
+            dirs_off = opt_off + 96
+        elif magic == 0x20B:
+            dirs_off = opt_off + 112
+        else:
+            return None
+        secdir_off = dirs_off + 32
+        cert_rva   = struct.unpack_from("<I", data, secdir_off)[0]
+        cert_size  = struct.unpack_from("<I", data, secdir_off + 4)[0]
+        if not cert_rva or not cert_size:
+            return None
+        # WIN_CERTIFICATE: length(4) + revision(2) + certType(2) + data
+        wc_len = struct.unpack_from("<I", data, cert_rva)[0]
+        pkcs7 = data[cert_rva + 8 : cert_rva + wc_len]
+        return _extract_spc_from_pkcs7(pkcs7)
+    except Exception:
+        return None
+
+
+def _extract_cab_spc_indirect_data(data: bytes) -> bytes | None:
+    """Extract SpcIndirectDataContent DER from a signed Cabinet file."""
+    try:
+        if data[:4] != b"MSCF":
+            return None
+        flags = struct.unpack_from("<H", data, 30)[0]
+        if not (flags & _FLAG_RESERVE_PRESENT):
+            return None
+        header_size = struct.unpack_from("<I", data, 36)[0]
+        if header_size != 20:
+            return None
+        sigpos = struct.unpack_from("<I", data, 44)[0]
+        siglen = struct.unpack_from("<I", data, 48)[0]
+        if not sigpos or not siglen:
+            return None
+        pkcs7 = data[sigpos : sigpos + siglen]
+        return _extract_spc_from_pkcs7(pkcs7)
+    except Exception:
+        return None
+
+
 def is_pe_file(path: str) -> bool:
     """Return True if the file starts with the MZ PE magic bytes."""
     try:
@@ -716,9 +995,9 @@ def main() -> None:
         catalog_name = "driver.cat"
         print(f"[WARN] No CatalogFile= in INF; using '{catalog_name}'")
 
-    # Hash files
+    # Hash files (read once; compute SHA-256 + SHA-1 + extract SPC)
     print(f"[INFO] Hashing {len(all_filenames)} file(s) ...")
-    entries: list[tuple[str, bytes, bool]] = []
+    entries: list[tuple[str, bytes, bytes, bool, bytes | None]] = []
     missing: list[str] = []
 
     for fname in all_filenames:
@@ -726,8 +1005,24 @@ def main() -> None:
         if path is None:
             missing.append(fname)
             continue
-        h = sha256_of(path)
-        entries.append((fname, h, is_pe_file(path)))
+        with open(path, "rb") as fh:
+            raw = fh.read()
+        if raw[:2] == b"MZ":
+            sha256  = _pe_authenticode_hash(raw) or hashlib.sha256(raw).digest()
+            sha1    = _pe_authenticode_hash_sha1(raw) or hashlib.sha1(raw).digest()
+            spc_der = _extract_pe_spc_indirect_data(raw)
+            pe      = True
+        elif raw[:4] == b"MSCF":
+            sha256  = _cab_authenticode_hash(raw) or hashlib.sha256(raw).digest()
+            sha1    = _cab_authenticode_hash_sha1(raw) or hashlib.sha1(raw).digest()
+            spc_der = _extract_cab_spc_indirect_data(raw)
+            pe      = False
+        else:
+            sha256  = hashlib.sha256(raw).digest()
+            sha1    = hashlib.sha1(raw).digest()
+            spc_der = None
+            pe      = False
+        entries.append((fname, sha256, sha1, pe, spc_der))
 
     if missing:
         print(f"[WARN] {len(missing)} file(s) not found (skipped):")
@@ -738,14 +1033,17 @@ def main() -> None:
         print("[ERROR] No files to catalog.")
         sys.exit(1)
 
-    # Sort by SubjectIdentifier (SHA-256 hash) — matches real Inf2Cat order
-    entries.sort(key=lambda x: x[1])
-
-    pe_count  = sum(1 for _, _, pe in entries if pe)
+    pe_count  = sum(1 for *_, pe, _ in entries if pe)
     non_count = len(entries) - pe_count
 
-    # Build catalog
-    entries_der = b"".join(_build_entry(fname, h, OS_ATTR, pe) for fname, h, pe in entries)
+    # Build dual entries (main SHA-256 + supplementary SHA-1) for every file,
+    # then sort all entries together by SubjectIdentifier bytes.
+    all_ctlentries: list[tuple[bytes, bytes]] = []
+    for fname, sha256, sha1, pe, spc_der in entries:
+        all_ctlentries.append((sha256, _build_entry(fname, sha256, OS_ATTR, pe, spc_der)))
+        all_ctlentries.append((sha1,   _build_supplementary_entry(fname, sha1, OS_ATTR)))
+    all_ctlentries.sort(key=lambda x: x[0])
+    entries_der = b"".join(e for _, e in all_ctlentries)
     list_id = uuid.uuid4().bytes
     timestamp = datetime.now(timezone.utc)
     # Keep only OS extension values whose NT version matches our hardcoded OS_ATTR target.
@@ -764,6 +1062,7 @@ def main() -> None:
 
     print(f"[OK]   {out_path}")
     print(f"       {len(entries)} file(s) cataloged  ({pe_count} PE, {non_count} non-PE)")
+    print(f"       {len(all_ctlentries)} CTL entries  ({len(entries)} SHA-256 + {len(entries)} SHA-1)")
     print(f"       OSAttr = \"{OS_ATTR}\"")
     if all_hwids:
         os_str = ", ".join(matched_os) if matched_os else "(none)"
