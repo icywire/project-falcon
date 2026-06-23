@@ -25,8 +25,8 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ### AMD 25.2.1
 Stable - based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver (no binaries modified)  
-Tested with: 5500M, 5300M, W6900X
-Games: Forza Horizon 6, Witcher 3, Assassin's Creed Origins
+Tested hardware: 5500M, 5300M, W6900X  
+Tested software: Forza Horizon 6, Witcher 3, Assassin's Creed Origins, DaVinci Resolve
 
 ### AMD 26.6.1
 Work in progress...
