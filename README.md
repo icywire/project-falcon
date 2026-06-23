@@ -7,9 +7,10 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Current state
 
-✅ RDNA1/RDNA2 (Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
-🚧 WHQL workaround - work in progress  
-⏳ Radeon 5600M - on TODO list  
+✅ RDNA1/RDNA2 (all Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported
+✅ 5600M - support added, needs someone who can verify
+🚧 AMD 26.6.1 - in progress
+⏳ WHQL workaround - on hold
 ⏳ Polaris/Vega - on TODO list
 
 ## Community/issues/help
