@@ -22,12 +22,15 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Drivers
 
-### Versions
+### AMD 25.2.1
+Stable - based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver (no binaries modified)  
+Tested with: 5500M, 5300M, W6900X
+Games: Forza Horizon 6, Witcher 3, Assassin's Creed Origins
 
-* AMD 25.2.1 - stable - based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver (no binaries modified)
-* AMD 26.5.2 - work in progress..
+### AMD 26.6.1
+Work in progress...
 
-### Installation
+## Installation
 
 1. Uninstall the existing GPU driver manually or using DDU or RAPR (see Tools section below)
 2. Download the official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) base driver and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
