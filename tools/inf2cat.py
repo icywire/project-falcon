@@ -1055,8 +1055,11 @@ def main() -> None:
     ctl_body  = _build_ctl_body(entries_der, list_id, timestamp, hwid_ext)
     cat_bytes = _build_pkcs7(ctl_body)
 
-    # Write
-    out_path = os.path.join(driver_dir, catalog_name)
+    # Write — if --out is an absolute path use it directly, otherwise place in driver_dir
+    if args.out and os.path.isabs(args.out):
+        out_path = args.out
+    else:
+        out_path = os.path.join(driver_dir, catalog_name)
     with open(out_path, "wb") as fh:
         fh.write(cat_bytes)
 
