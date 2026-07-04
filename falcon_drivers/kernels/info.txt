@@ -7,3 +7,7 @@
 - close to AMD 23.5.2 (v22.40)
 - supports overclocking/undervolting in mobile cards (tuning tab aka. Wattman)
 - https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid=0c88a1d1-441a-42a7-92cb-c975ce63cd37
+
+32.0.12033.5029
+- from AMD Software Adrenalin Edition 25.2.1
+- last kernel that supports GPUs installed in Macs

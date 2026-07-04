@@ -17,48 +17,72 @@ echo  ____________________________________
 echo.
 echo  Select driver to install:
 echo.
-echo    1  AMD 25.2.1 for Navi  (RDNA1/RDNA2, series 5xxx/6xxx)
-echo    2  AMD 25.2.1 for Radeon Pro 5600M  (22.6.1 kernel)
+echo    1  AMD 26.6.1 for Navi 5xxx/6xxx (25.2.1 kernel)
+echo    2  AMD 25.2.1 for Navi 5xxx/6xxx
+echo    3  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
 echo.
-choice /c 12Q /n /m "  Choose [1, 2] or Q to quit: "
-if errorlevel 3 exit /b 0
-if errorlevel 2 goto Select5600M
-if errorlevel 1 goto SelectNavi
+choice /c 123Q /n /m "  Choose [1, 2, 3] or Q to quit: "
+if errorlevel 4 exit /b 0
+if errorlevel 3 goto Select_25_2_1_5600M
+if errorlevel 2 goto Select_25_2_1_Navi
+if errorlevel 1 goto Select_26_6_1_Navi
 
-:SelectNavi
+:Select_26_6_1_Navi
+set "SRC=%~dp0falcon_drivers\AMD-26.6.1"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display2\WT6A_INF"
+set "BASEFOLDER=B026079"
+set "INFBASE=u0201163"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html"
+set "KERNELFILE=amdkmdag_32.0.12033.5029.sys.xz"
+set "KERNELVER=32.0.21043.12001"
+echo.
+echo  Selected: AMD 26.6.1 for Radeon Pro 5500M (25.2.1 kernel )
+echo.
+goto Install
+
+:Select_25_2_1_Navi
 set "SRC=%~dp0falcon_drivers\AMD-25.2.1"
-set "IS_5600M=0"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF"
+set "BASEFOLDER=B412641"
+set "INFBASE=u0412654"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html"
+set "KERNELFILE="
+set "KERNELVER="
 echo.
 echo  Selected: AMD 25.2.1 for Navi
 echo.
 goto Install
 
-:Select5600M
+:Select_25_2_1_5600M
 set "SRC=%~dp0falcon_drivers\AMD-25.2.1_5600M"
-set "IS_5600M=1"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF"
+set "BASEFOLDER=B412641"
+set "INFBASE=u0412654"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html"
+set "KERNELFILE=amdkmdag_30.0.21030.1003.sys.xz"
+set "KERNELVER=32.0.12033.5029"
 echo.
-echo  Selected: AMD 25.2.1 for Radeon Pro 5600M
+echo  Selected: AMD 25.2.1 for Radeon Pro 5600M (kernel 22.6.1 kernel)
 echo.
 goto Install
 
 :Install
-set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF"
 set "CERT=%~dp0certificate"
 
 :: Verify base driver is present
-if not exist "%DST%\B412641" (
+if not exist "%DST%\%BASEFOLDER%" (
     echo ERROR: Base driver not found.
     echo.
-    echo   AMD Radeon Software 25.2.1 must be downloaded and extracted first.
+    echo   AMD Radeon Software must be downloaded and extracted first.
     echo   Download it from:
-    echo   https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html
+    echo   %RELNOTES%
     echo.
     goto :end
 )
 
 echo [1/3] Copying driver files...
-more "%SRC%\u0412654.inf" > "%DST%\u0412654.inf" || goto :error
-copy /y "%SRC%\u0412654.cat" "%DST%\" >nul || goto :error
+more "%SRC%\%INFBASE%.inf" > "%DST%\%INFBASE%.inf" || goto :error
+copy /y "%SRC%\%INFBASE%.cat" "%DST%\" >nul || goto :error
 echo       Done.
 
 echo [2/3] Installing certificate...
@@ -68,20 +92,20 @@ certutil -f -addstore Root            "%CERT%\Project Falcon.cer" >nul 2>&1 || g
 certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 echo       Done.
 
-if "%IS_5600M%"=="1" (
+if defined KERNELFILE (
     echo [3/4] Extracting kernel...
-    "%~dp0tools\xz.exe" -d -k -f "%~dp0falcon_drivers\kernels\amdkmdag_30.0.21030.1003.sys.xz" -c > "C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF\B412641\amdkmdag.sys" || goto :error
+    "%~dp0tools\xz.exe" -d -k -f "%~dp0falcon_drivers\kernels\%KERNELFILE%" -c > "%DST%\%BASEFOLDER%\amdkmdag.sys" || goto :error
     echo       Done.
     echo [4/4] Installing driver - this sometimes freezes, press Enter after a minute or so...
 ) else (
     echo [3/3] Installing driver - this sometimes freezes, press Enter after a minute or so...
 )
-start /b /w pnputil /add-driver "%DST%\u0412654.inf" /install
+start /b /w pnputil /add-driver "%DST%\%INFBASE%.inf" /install
 echo       Done.
 
-if "%IS_5600M%"=="1" (
-    reg add "HKLM\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v DriverVersion /d "32.0.12033.5029" /t REG_SZ /f >nul 2>&1
-    echo [+]   Set DriverVersion to 32.0.12033.5029
+if defined KERNELVER (
+    reg add "HKLM\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v DriverVersion /d "%KERNELVER%" /t REG_SZ /f >nul 2>&1
+    echo [+]   Set DriverVersion to %KERNELVER%
 )
 
 :exit
