@@ -7,11 +7,10 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Current state
 
-✅ RDNA1/RDNA2 (all Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
-✅ 5600M - support added, needs someone who can verify  
-🚧 AMD 26.6.1 - in progress  
+✅ All Navi cards (all Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
+✅ Radeon Pro 5600M - supported  
 ⏳ WHQL workaround - on hold  
-⏳ Polaris/Vega - on TODO list  
+⏳ Polaris/Vega - on TODO list
 
 ## Community/issues/help
 
@@ -23,18 +22,16 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Drivers
 
-### AMD 25.2.1
-Stable - based on official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) driver (no binaries modified)  
-Tested hardware: 5500M, 5300M, W6900X  
-Tested software: Forza Horizon 6, Witcher 3, Assassin's Creed Origins, DaVinci Resolve
+### For all Navi cards 5xxx/6xxx (except Radeon Pro 5600M)
+Base driver - [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
 
-### AMD 26.6.1
-Work in progress...
+### For Radeon Pro 5600M exclusively
+Base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (22.6.1 kernel)
 
 ## Installation
 
 1. Uninstall the existing GPU driver manually or using DDU or RAPR (see Tools section below)
-2. Download the official [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) base driver and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
+2. Download base driver (see above) and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
 3. Download or clone this repository - click green button "Code", then "Download ZIP"
 4. Run `install-driver.cmd` — it will patch base driver and install it (sometime it hangs, just hit Enter after minute or so)
 5. Done
