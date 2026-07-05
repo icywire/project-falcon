@@ -25,6 +25,8 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 ### For all Navi cards 5xxx/6xxx (except Radeon Pro 5600M)
 Base driver - [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
 
+Older base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) - this should be most stable one
+
 ### For Radeon Pro 5600M exclusively
 Base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (22.6.1 kernel)
 
