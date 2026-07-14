@@ -2,8 +2,9 @@
 
 ## About
 
-The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs after [BootCampDrivers.com](https://www.bootcampdriver.com) died.  
-**RDNA** cards are main focus, might be someday I'll add Polaris/Vega support as well.
+The goal of this project is to fill the gap and provide AMD driver updates dedicated for Macs!
+
+Want to learn more and stay in touch? [<img src="images/discord.png" width="24" valign="middle"> Join our discord!](https://discord.gg/JrUCrVhFqz)
 
 ## Current state
 
@@ -11,15 +12,7 @@ Following AMD GPUs from Macbooks/iMacs/MacPro are supported:
 
 ✅ Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)  
 ✅ Radeon Pro 5600M  
-✅ Radeon Pro Polaris (400/500 series) and Vega - supported  
-
-## Community/issues/help
-
-[Join discord](https://discord.gg/JrUCrVhFqz)
-
-[Report issues](https://github.com/icywire/project-falcon/issues)
-
-[Start discussion](https://github.com/icywire/project-falcon/discussions)
+✅ Radeon Pro Polaris (400/500 series) and Vega  
 
 ## Drivers
 
