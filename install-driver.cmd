@@ -17,12 +17,14 @@ echo  ____________________________________
 echo.
 echo  Select driver to install:
 echo.
-echo    1  AMD 26.6.1 for Navi 5xxx/6xxx (25.2.1 kernel)
-echo    2  AMD 25.2.1 for Navi 5xxx/6xxx
+echo    1  AMD 26.6.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (25.2.1 kernel)
+echo    2  AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
 echo    3  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
+echo    4  AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
 echo.
-choice /c 123Q /n /m "  Choose [1, 2, 3] or Q to quit: "
-if errorlevel 4 exit /b 0
+choice /c 1234Q /n /m "  Choose [1, 2, 3, 4] or Q to quit: "
+if errorlevel 5 exit /b 0
+if errorlevel 4 goto Select_26_5_2_PolarisVega
 if errorlevel 3 goto Select_25_2_1_5600M
 if errorlevel 2 goto Select_25_2_1_Navi
 if errorlevel 1 goto Select_26_6_1_Navi
@@ -36,7 +38,7 @@ set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN
 set "KERNELFILE=amdkmdag_32.0.12033.5029.sys.xz"
 set "KERNELVER=32.0.21043.12001"
 echo.
-echo  Selected: AMD 26.6.1 for Radeon Pro 5500M (25.2.1 kernel )
+echo  Selected: AMD 26.6.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (25.2.1 kernel)
 echo.
 goto Install
 
@@ -49,7 +51,7 @@ set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN
 set "KERNELFILE="
 set "KERNELVER="
 echo.
-echo  Selected: AMD 25.2.1 for Navi
+echo  Selected: AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
 echo.
 goto Install
 
@@ -63,6 +65,19 @@ set "KERNELFILE=amdkmdag_30.0.21030.1003.sys.xz"
 set "KERNELVER=32.0.12033.5029"
 echo.
 echo  Selected: AMD 25.2.1 for Radeon Pro 5600M (kernel 22.6.1 kernel)
+echo.
+goto Install
+
+:Select_26_5_2_PolarisVega
+set "SRC=%~dp0falcon_drivers\AMD-26.5.2_polaris_vega"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF"
+set "BASEFOLDER=B025980"
+set "INFBASE=u0201039"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2-POLARIS-VEGA.html"
+set "KERNELFILE="
+set "KERNELVER="
+echo.
+echo  Selected: AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
 echo.
 goto Install
 

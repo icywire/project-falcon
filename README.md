@@ -7,10 +7,11 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Current state
 
-✅ All Navi cards (all Radeon 5xxx/6xxx cards from iMacs/MacPro/Macbooks) - supported  
-✅ Radeon Pro 5600M - supported  
-⏳ WHQL workaround - on hold  
-⏳ Polaris/Vega - on TODO list
+Following AMD GPUs from Macbooks/iMacs/MacPro are supported:
+
+✅ Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)  
+✅ Radeon Pro 5600M  
+✅ Radeon Pro Polaris (400/500 series) and Vega - supported  
 
 ## Community/issues/help
 
@@ -22,7 +23,7 @@ The goal of this project is to fill the gap and provide AMD driver updates dedic
 
 ## Drivers
 
-### For all Navi cards 5xxx/6xxx (except Radeon Pro 5600M)
+### For Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (except Radeon Pro 5600M)
 Base driver - [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
 
 Older base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) - this should be most stable one
@@ -30,12 +31,15 @@ Older base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articl
 ### For Radeon Pro 5600M exclusively
 Base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (22.6.1 kernel)
 
+### For Radeon Pro Polaris (400/500 series) and Vega
+Base driver - [AMD 26.5.2](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2-POLARIS-VEGA.html)
+
 ## Installation
 
 1. Uninstall the existing GPU driver manually or using DDU or RAPR (see Tools section below)
 2. Download base driver (see above) and run the installer. Once it fails, close the window — the extracted files will remain on `C:\`
 3. Download or clone this repository - click green button "Code", then "Download ZIP"
-4. Run `install-driver.cmd` — it will patch base driver and install it (sometime it hangs, just hit Enter after minute or so)
+4. Run `install-driver.cmd` as admin — it will patch base driver and install it (sometime it hangs, just hit Enter after minute or so)
 5. Done
 6. If you wish, you may install AMD Software manually from `C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF\B412641\ccc2_install.exe`
 
