@@ -34,7 +34,7 @@ Base driver - [AMD 26.5.2](https://www.amd.com/en/resources/support-articles/rel
 3. Download or clone this repository - click green button "Code", then "Download ZIP"
 4. Run `install-driver.cmd` as admin — it will patch base driver and install it (sometime it hangs, just hit Enter after minute or so)
 5. Done
-6. If you wish, you may install AMD Software manually from `C:\AMD\AMD-Software-Installer\Packages\Drivers\Display\WT6A_INF\B412641\ccc2_install.exe`
+6. If you wish, you may install AMD Software manually from `C:\AMD\AMD-Software-Installer\Packages\Drivers\Display2\WT6A_INF\B412641\ccc2_install.exe` (use `Display2` if `Display` doesn't work)
 
 ## Overclocking/undervolting mobile cards
 
