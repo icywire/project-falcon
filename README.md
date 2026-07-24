@@ -8,7 +8,7 @@ Want to learn more and stay in touch? [<img src="images/discord.png" width="24" 
 
 ## Current state
 
-Following AMD GPUs from Macbooks/iMacs/MacPro are supported:
+All Polaris/Vega/Navi AMD GPUs from Macbooks/iMacs/MacPro are supported. This includes:
 
 ✅ Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)  
 ✅ Radeon Pro 5600M  
