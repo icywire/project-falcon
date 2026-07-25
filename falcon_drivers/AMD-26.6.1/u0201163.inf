@@ -8478,10 +8478,11 @@ HKR,,PP_Apple_Bootcamp_Enable,%REG_DWORD%,1
 HKR,,PP_EnableLoadFalconSmcFirmware,%REG_DWORD%,1
 HKR,,PP_Falcon_QuickTransition_Enable,%REG_DWORD%,1
 HKR,,PP_VariBrightFeatureEnable,%REG_DWORD%,0
-;; part 2
-HKR,,mobile_runtime_component_NA,%REG_SZ%,false
-HKR,,MobileLinkOverCloudAuth_NA,%REG_DWORD%,0
-HKR,,ReportAnalytics,%REG_DWORD%,0
+;; imac 5k
+HKR,,DalSupportCASOLinearScanout,%REG_DWORD%,1
+HKR,,DALOPTION_MinResBCD,%REG_BINARY%,00,00,00,00,00,00,00,60
+HKR,,DalVSRInitiallyDefaultToOff,%REG_DWORD%,1
+HKR,,KMD_EnableDisplayableSupport,%REG_DWORD%,0
 
 [ati2mtag_RemoveDeviceSettings]
 HKR,,"Adaptive De-interlacing"
