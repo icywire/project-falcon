@@ -19,13 +19,15 @@ echo  Select driver to install:
 echo.
 echo    1  AMD 26.6.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (25.2.1 kernel)
 echo    2  AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
-echo    3  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
-echo    4  AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
+echo    3  AMD 26.6.1 for Radeon Pro 5600M (22.6.1 kernel)
+echo    4  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
+echo    5  AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
 echo.
-choice /c 1234Q /n /m "  Choose [1, 2, 3, 4] or Q to quit: "
-if errorlevel 5 exit /b 0
-if errorlevel 4 goto Select_26_5_2_PolarisVega
-if errorlevel 3 goto Select_25_2_1_5600M
+choice /c 12345Q /n /m "  Choose [1, 2, 3, 4, 5] or Q to quit: "
+if errorlevel 6 exit /b 0
+if errorlevel 5 goto Select_26_5_2_PolarisVega
+if errorlevel 4 goto Select_25_2_1_5600M
+if errorlevel 3 goto Select_26_6_1_5600M
 if errorlevel 2 goto Select_25_2_1_Navi
 if errorlevel 1 goto Select_26_6_1_Navi
 
@@ -52,6 +54,19 @@ set "KERNELFILE="
 set "KERNELVER="
 echo.
 echo  Selected: AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
+echo.
+goto Install
+
+:Select_26_6_1_5600M
+set "SRC=%~dp0falcon_drivers\AMD-26.6.1_5600M"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display2\WT6A_INF"
+set "BASEFOLDER=B026079"
+set "INFBASE=u0201163"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html"
+set "KERNELFILE=amdkmdag_30.0.21030.1003.sys.xz"
+set "KERNELVER=32.0.21043.12001"
+echo.
+echo  Selected: AMD 26.6.1 for Radeon Pro 5600M
 echo.
 goto Install
 
