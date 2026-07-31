@@ -14,18 +14,20 @@ All Polaris/Vega/Navi AMD GPUs from Macbooks/iMacs/MacPro are supported. This in
 ✅ Radeon Pro 5600M  
 ✅ Radeon Pro Polaris (400/500 series) and Vega  
 
-## Drivers
+## Driver versions
 
-### For Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (except Radeon Pro 5600M)
-Base driver - [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
+❗Read [Installation](#installation) first before you ask what to download❗
 
-Older base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) - this should be most stable one
+#### For Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series):
+1. [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
+2. [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (original kernel)
 
-### For Radeon Pro 5600M exclusively
-Base driver - [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (22.6.1 kernel)
+#### For Radeon Pro 5600M  
+1. [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (22.6.1 kernel)
+2. [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (22.6.1 kernel)
 
-### For Radeon Pro Polaris (400/500 series) and Vega
-Base driver - [AMD 26.5.2](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2-POLARIS-VEGA.html)
+#### For Radeon Pro Polaris (400/500 series) and Vega  
+1. [AMD 26.5.2](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2-POLARIS-VEGA.html) (original kernel)
 
 ## Installation
 
