@@ -19,8 +19,9 @@ All Polaris/Vega/Navi AMD GPUs from Macbooks/iMacs/MacPro are supported. This in
 ❗Read [Installation](#installation) first before you ask what to download❗
 
 #### For Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series):
-1. [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
-2. [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (original kernel)
+1. [AMD 26.9.2](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-9-2.html) (original kernel)
+2. [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (25.2.1 kernel)
+3. [AMD 25.2.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-25-2-1.html) (original kernel)
 
 #### For Radeon Pro 5600M  
 1. [AMD 26.6.1](https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-6-1.html) (22.6.1 kernel)

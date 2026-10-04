@@ -10,6 +10,7 @@ if %errorlevel% neq 0 (
 )
 
 :Menu
+set "DATFILE="
 cls
 echo.
 echo  Project Falcon - AMD Driver Installer
@@ -17,19 +18,21 @@ echo  ____________________________________
 echo.
 echo  Select driver to install:
 echo.
-echo    1  AMD 26.6.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (25.2.1 kernel)
-echo    2  AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
-echo    3  AMD 26.6.1 for Radeon Pro 5600M (22.6.1 kernel)
-echo    4  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
-echo    5  AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
+echo    1  AMD 26.9.2 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
+echo    2  AMD 26.6.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series) (25.2.1 kernel)
+echo    3  AMD 25.2.1 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
+echo    4  AMD 26.6.1 for Radeon Pro 5600M (22.6.1 kernel)
+echo    5  AMD 25.2.1 for Radeon Pro 5600M (22.6.1 kernel)
+echo    6  AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
 echo.
-choice /c 12345Q /n /m "  Choose [1, 2, 3, 4, 5] or Q to quit: "
-if errorlevel 6 exit /b 0
-if errorlevel 5 goto Select_26_5_2_PolarisVega
-if errorlevel 4 goto Select_25_2_1_5600M
-if errorlevel 3 goto Select_26_6_1_5600M
-if errorlevel 2 goto Select_25_2_1_Navi
-if errorlevel 1 goto Select_26_6_1_Navi
+choice /c 123456Q /n /m "  Choose [1, 2, 3, 4, 5, 6] or Q to quit: "
+if errorlevel 7 exit /b 0
+if errorlevel 6 goto Select_26_5_2_PolarisVega
+if errorlevel 5 goto Select_25_2_1_5600M
+if errorlevel 4 goto Select_26_6_1_5600M
+if errorlevel 3 goto Select_25_2_1_Navi
+if errorlevel 2 goto Select_26_6_1_Navi
+if errorlevel 1 goto Select_26_9_2_Navi
 
 :Select_26_6_1_Navi
 set "SRC=%~dp0falcon_drivers\AMD-26.6.1"
@@ -96,6 +99,20 @@ echo  Selected: AMD 26.5.2 for Radeon Pro Polaris (400/500 series) and Vega
 echo.
 goto Install
 
+:Select_26_9_2_Navi
+set "SRC=%~dp0falcon_drivers\AMD-26.9.2"
+set "DST=C:\AMD\AMD-Software-Installer\Packages\Drivers\Display2\WT6A_INF"
+set "BASEFOLDER=B026531"
+set "INFBASE=u0204589"
+set "RELNOTES=https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-9-2.html"
+set "KERNELFILE="
+set "KERNELVER="
+set "DATFILE=amdgcf_26.9.2.dat.xz"
+echo.
+echo  Selected: AMD 26.9.2 for Radeon Pro RDNA1 (5000 series) and RDNA2 (6000 series)
+echo.
+goto Install
+
 :Install
 set "CERT=%~dp0certificate"
 
@@ -122,14 +139,15 @@ certutil -f -addstore Root            "%CERT%\Project Falcon.cer" >nul 2>&1 || g
 certutil -f -addstore TrustedPublisher "%CERT%\Project Falcon.cer" >nul 2>&1 || goto :error
 echo       Done.
 
+echo Extracting files...
 if defined KERNELFILE (
-    echo [3/4] Extracting kernel...
     "%~dp0tools\xz.exe" -d -k -f "%~dp0falcon_drivers\kernels\%KERNELFILE%" -c > "%DST%\%BASEFOLDER%\amdkmdag.sys" || goto :error
-    echo       Done.
-    echo [4/4] Installing driver - this sometimes freezes, press Enter after a minute or so...
-) else (
-    echo [3/3] Installing driver - this sometimes freezes, press Enter after a minute or so...
 )
+if defined DATFILE (
+    "%~dp0tools\xz.exe" -d -k -f "%~dp0falcon_drivers\kernels\%DATFILE%" -c > "%DST%\%BASEFOLDER%\amdgcf.dat" || goto :error
+)
+
+echo [3/3] Installing driver - this sometimes freezes, press Enter after a minute or so...
 start /b /w pnputil /add-driver "%DST%\%INFBASE%.inf" /install
 echo       Done.
 
